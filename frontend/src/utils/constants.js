@@ -13,8 +13,9 @@ export const SERVICE_TYPES = {
 
 export const ORDER_STATUSES = {
   PENDING: 'pending',
-  IN_PROGRESS: 'in_progress',
+  PREPARING: 'preparing',
   READY: 'ready',
+  PAYMENT: 'payment',
   COMPLETED: 'completed',
   CANCELLED: 'cancelled',
 };
@@ -35,7 +36,6 @@ export const ORDER_SOURCES = {
 export const TABLE_STATUSES = {
   AVAILABLE: 'available',
   OCCUPIED: 'occupied',
-  RESERVED: 'reserved',
 };
 
 export const PAYMENT_METHODS = {

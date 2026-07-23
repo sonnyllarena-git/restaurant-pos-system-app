@@ -8,10 +8,11 @@ import CartSummary from './CartSummary';
 import ItemCustomization from './ItemCustomization';
 import OrderTypeModal from './OrderTypeModal';
 import ServiceTypeModal from './ServiceTypeModal';
+import DeliveryMethodModal from './DeliveryMethodModal';
 import { SERVICE_TYPES } from '../../utils/constants';
 
 export default function POSScreen() {
-  const { selectedTable, serviceType, orderType } = useOrder();
+  const { selectedTable, serviceType, orderType, deliveryMethod } = useOrder();
   const { addToCart } = useCart();
   const { showSuccess } = useContext(NotificationContext);
   const [customizingItem, setCustomizingItem] = useState(null);
@@ -37,6 +38,10 @@ export default function POSScreen() {
 
   if (!serviceType) {
     return <ServiceTypeModal />;
+  }
+
+  if (serviceType === SERVICE_TYPES.DELIVERY && !deliveryMethod) {
+    return <DeliveryMethodModal />;
   }
 
   if (serviceType === SERVICE_TYPES.DINE_IN && !selectedTable) {

@@ -7,7 +7,16 @@ import { SERVICE_TYPES } from '../utils/constants';
 export default function POSPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { orderType, setOrderType, serviceType, setServiceType, selectedTable, setSelectedTable } = useOrder();
+  const {
+    orderType,
+    setOrderType,
+    serviceType,
+    setServiceType,
+    selectedTable,
+    setSelectedTable,
+    deliveryMethod,
+    setDeliveryMethod,
+  } = useOrder();
 
   // The order-taking wizard (order type -> service type -> table -> menu/cart) is all
   // state on a single /pos route, not separate history entries, so browser-history
@@ -27,6 +36,10 @@ export default function POSPage() {
           setServiceType(null);
         } else if (serviceType === SERVICE_TYPES.DINE_IN) {
           setSelectedTable(null);
+        } else if (serviceType === SERVICE_TYPES.DELIVERY && !deliveryMethod) {
+          setServiceType(null);
+        } else if (serviceType === SERVICE_TYPES.DELIVERY) {
+          setDeliveryMethod(null);
         } else {
           setServiceType(null);
         }

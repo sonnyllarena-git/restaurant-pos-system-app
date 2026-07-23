@@ -3,8 +3,9 @@ import React from 'react';
 const FILTERS = [
   { key: 'all', label: 'All' },
   { key: 'pending', label: 'New' },
-  { key: 'in_progress', label: 'In Progress' },
+  { key: 'preparing', label: 'Preparing' },
   { key: 'ready', label: 'Ready' },
+  { key: 'payment', label: 'Payment' },
 ];
 
 export default function StatusFilter({ activeFilter, onChange }) {

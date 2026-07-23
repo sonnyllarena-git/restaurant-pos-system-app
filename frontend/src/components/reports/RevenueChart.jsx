@@ -9,7 +9,7 @@ export default function RevenueChart({ data }) {
       <ResponsiveContainer width="100%" height={260}>
         <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
           <CartesianGrid stroke="#e2e8f0" vertical={false} />
-          <XAxis dataKey="hour" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={{ stroke: '#cbd5e1' }} tickLine={false} />
+          <XAxis dataKey="hourLabel" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={{ stroke: '#cbd5e1' }} tickLine={false} />
           <YAxis
             tick={{ fontSize: 12, fill: '#64748b' }}
             axisLine={{ stroke: '#cbd5e1' }}

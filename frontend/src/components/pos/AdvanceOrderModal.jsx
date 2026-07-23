@@ -3,14 +3,15 @@ import Modal from '../common/Modal';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import DuplicateWarningModal from './DuplicateWarningModal';
+import OrderConfirmationModal from './OrderConfirmationModal';
 import { useCart } from '../../hooks/useCart';
 import { useOrder } from '../../hooks/useOrder';
 import { useDuplicateCheck } from '../../hooks/useDuplicateCheck';
 import { UIContext } from '../../context/UIContext';
 import { NotificationContext } from '../../context/NotificationContext';
-import { saveOrder } from '../../services/dbService';
+import { saveOrder, markTableOccupied } from '../../services/dbService';
 import { formatCurrency } from '../../utils/formatters';
-import { ORDER_TYPES, ORDER_SOURCES } from '../../utils/constants';
+import { ORDER_TYPES, ORDER_SOURCES, SERVICE_TYPES } from '../../utils/constants';
 
 const SOURCE_OPTIONS = [
   { value: ORDER_SOURCES.PHONE, label: 'Phone Call' },
@@ -32,7 +33,7 @@ function todayISO() {
 
 export default function AdvanceOrderModal({ onClose }) {
   const { items, subtotal, tax, total, clearCart } = useCart();
-  const { selectedTable, serviceType } = useOrder();
+  const { selectedTable, serviceType, deliveryMethod, deliveryCompany } = useOrder();
   const { confirm } = useContext(UIContext);
   const { showSuccess, showError } = useContext(NotificationContext);
   const { checkDuplicateOrder, checkRecentSubmission } = useDuplicateCheck();
@@ -45,6 +46,7 @@ export default function AdvanceOrderModal({ onClose }) {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [duplicateOrder, setDuplicateOrder] = useState(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const buildOrderPayload = () => ({
     customerName: customerName.trim(),
@@ -53,6 +55,8 @@ export default function AdvanceOrderModal({ onClose }) {
     orderSource,
     serviceType: serviceType || null,
     tableNumber: selectedTable || null,
+    deliveryMethod,
+    deliveryCompany,
     items: items.map((item) => ({
       id: item.cartItemId,
       name: item.menuItem.name,
@@ -86,8 +90,12 @@ export default function AdvanceOrderModal({ onClose }) {
   const finalizeSave = async () => {
     setSaving(true);
     try {
-      await saveOrder(buildOrderPayload());
+      const savedOrder = await saveOrder(buildOrderPayload());
+      if (serviceType === SERVICE_TYPES.DINE_IN && selectedTable) {
+        await markTableOccupied(selectedTable, savedOrder.id);
+      }
       clearCart();
+      setShowConfirmation(false);
       showSuccess('Advance order created');
       onClose();
     } catch (err) {
@@ -116,7 +124,8 @@ export default function AdvanceOrderModal({ onClose }) {
         return;
       }
 
-      await finalizeSave();
+      setSaving(false);
+      setShowConfirmation(true);
     } catch (err) {
       showError('Failed to save advance order');
       setSaving(false);
@@ -234,8 +243,30 @@ export default function AdvanceOrderModal({ onClose }) {
           onClose={() => setDuplicateOrder(null)}
           onCreateNew={() => {
             setDuplicateOrder(null);
-            finalizeSave();
+            setShowConfirmation(true);
           }}
+        />
+      )}
+
+      {showConfirmation && (
+        <OrderConfirmationModal
+          orderType="advance"
+          serviceType={serviceType}
+          tableNumber={selectedTable}
+          deliveryMethod={deliveryMethod}
+          deliveryCompany={deliveryCompany}
+          customerName={customerName}
+          customerPhone={customerPhone}
+          items={items}
+          subtotal={subtotal}
+          tax={tax}
+          total={total}
+          orderDate={orderDate}
+          orderTime={orderTime}
+          onBack={() => setShowConfirmation(false)}
+          onCancel={onClose}
+          onConfirm={finalizeSave}
+          saving={saving}
         />
       )}
     </>

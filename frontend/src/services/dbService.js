@@ -1,4 +1,7 @@
 import { generateId } from '../utils/helpers';
+import { calculateTax, calculateTotal } from '../utils/calculations';
+import { get as getFromStorage } from './storageService';
+import { DEFAULT_TAX_RATE } from '../utils/constants';
 
 // IndexedDB is used instead of the spec's literal `better-sqlite3` because this app
 // runs in a plain Vite/browser context with no Node/Electron process to host a native
@@ -6,9 +9,15 @@ import { generateId } from '../utils/helpers';
 // so swapping the storage engine later is a drop-in change, not a call-site rewrite.
 
 const DB_NAME = 'pos_system';
-const DB_VERSION = 1;
+// Bump this whenever a new object store is added. `onupgradeneeded` only fires when
+// the requested version is higher than what's already stored for this origin — a
+// browser that already opened the DB at v1 (e.g. any existing dev/test profile) will
+// silently keep only the v1 stores forever if this isn't bumped, and every call
+// against a newer store (e.g. `tables`) will throw.
+const DB_VERSION = 2;
 const ORDERS_STORE = 'orders';
 const MENU_ITEMS_STORE = 'menu_items';
+const TABLES_STORE = 'tables';
 
 let dbPromise = null;
 
@@ -23,6 +32,9 @@ function openDb() {
       }
       if (!db.objectStoreNames.contains(MENU_ITEMS_STORE)) {
         db.createObjectStore(MENU_ITEMS_STORE, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(TABLES_STORE)) {
+        db.createObjectStore(TABLES_STORE, { keyPath: 'number' });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -91,6 +103,14 @@ export async function saveOrder(orderData) {
     cancelReason: orderData.cancelReason || null,
     cancelledBy: orderData.cancelledBy || null,
     notes: orderData.notes || '',
+    deliveryMethod: orderData.deliveryMethod || null,
+    deliveryCompany: orderData.deliveryCompany || null,
+    amountReceived: orderData.amountReceived ?? null,
+    change: orderData.change ?? null,
+    paymentMethod: orderData.paymentMethod || null,
+    editHistory: orderData.editHistory || [],
+    lastEditedAt: orderData.lastEditedAt || null,
+    lastEditedBy: orderData.lastEditedBy || null,
   };
   await withStore(ORDERS_STORE, 'readwrite', (store) => store.put(order));
   return order;
@@ -177,4 +197,104 @@ export async function seedMenuItemsIfEmpty(seedArray) {
     seedArray.forEach((item) => store.put(item));
   });
   return getMenuItems();
+}
+
+function currentTaxRate() {
+  const settings = getFromStorage('pos_settings', null);
+  return settings?.taxRate ?? DEFAULT_TAX_RATE;
+}
+
+const EDITABLE_ORDER_FIELDS = [
+  'customerName',
+  'customerPhone',
+  'serviceType',
+  'tableNumber',
+  'deliveryMethod',
+  'deliveryCompany',
+];
+
+export async function editOrder(orderId, changes, editedByName) {
+  const order = await getOrderById(orderId);
+  if (!order) return null;
+
+  const now = new Date().toISOString();
+  const editHistory = Array.isArray(order.editHistory) ? [...order.editHistory] : [];
+  const updated = { ...order };
+
+  const recordChange = (fieldChanged, oldValue, newValue) => {
+    if (JSON.stringify(oldValue ?? null) === JSON.stringify(newValue ?? null)) return;
+    editHistory.push({ fieldChanged, oldValue: oldValue ?? null, newValue: newValue ?? null, editedBy: editedByName || null, editedAt: now });
+  };
+
+  EDITABLE_ORDER_FIELDS.forEach((field) => {
+    if (changes[field] !== undefined) {
+      recordChange(field, order[field], changes[field]);
+      updated[field] = changes[field];
+    }
+  });
+
+  if (changes.items !== undefined) {
+    recordChange('items', order.items, changes.items);
+    updated.items = changes.items;
+    const subtotal = changes.items.reduce((sum, item) => sum + (item.total ?? item.quantity * item.unitPrice), 0);
+    const tax = calculateTax(subtotal, currentTaxRate());
+    updated.subtotal = subtotal;
+    updated.tax = tax;
+    updated.total = calculateTotal(subtotal, tax, 0);
+  }
+
+  updated.editHistory = editHistory;
+  updated.lastEditedAt = now;
+  updated.lastEditedBy = editedByName || null;
+
+  await withStore(ORDERS_STORE, 'readwrite', (store) => store.put(updated));
+  return updated;
+}
+
+export async function getAllTables() {
+  return getAll(TABLES_STORE).then((tables) => (tables || []).sort((a, b) => a.number - b.number));
+}
+
+export async function getTableByNumber(tableNumber) {
+  return withStore(TABLES_STORE, 'readonly', (store) => requestToPromise(store.get(tableNumber))).then(
+    (r) => r || null
+  );
+}
+
+export async function seedTablesIfEmpty(count = 9) {
+  const existing = await getAllTables();
+  if (existing.length > 0) return existing;
+  const seedArray = Array.from({ length: count }, (_, i) => ({
+    number: i + 1,
+    status: 'available',
+    activeOrderIds: [],
+  }));
+  await withStore(TABLES_STORE, 'readwrite', (store) => {
+    seedArray.forEach((table) => store.put(table));
+  });
+  return getAllTables();
+}
+
+export async function markTableOccupied(tableNumber, orderId) {
+  const table = await getTableByNumber(tableNumber);
+  if (!table) return null;
+  const activeOrderIds = table.activeOrderIds?.includes(orderId)
+    ? table.activeOrderIds
+    : [...(table.activeOrderIds || []), orderId];
+  const updated = { ...table, status: 'occupied', activeOrderIds };
+  await withStore(TABLES_STORE, 'readwrite', (store) => store.put(updated));
+  return updated;
+}
+
+export async function markTableDoneEating(tableNumber) {
+  const table = await getTableByNumber(tableNumber);
+  if (!table) return { ok: false, reason: 'Table not found.' };
+  const orders = await Promise.all((table.activeOrderIds || []).map((id) => getOrderById(id)));
+  const allDone = orders.every((o) => o && (o.status === 'completed' || o.status === 'cancelled'));
+  if (!allDone) {
+    return { ok: false, reason: 'Not all orders for this table are completed yet.' };
+  }
+  const updated = { ...table, status: 'available', activeOrderIds: [] };
+  await withStore(TABLES_STORE, 'readwrite', (store) => store.put(updated));
+  return { ok: true, table: updated };
 }

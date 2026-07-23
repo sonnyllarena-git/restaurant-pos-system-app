@@ -13,6 +13,9 @@ import { formatCurrency } from '../utils/formatters';
 const STATUS_OPTIONS = [
   { value: '', label: 'All Statuses' },
   { value: 'pending', label: 'Pending' },
+  { value: 'preparing', label: 'Preparing' },
+  { value: 'ready', label: 'Ready' },
+  { value: 'payment', label: 'Payment' },
   { value: 'completed', label: 'Completed' },
   { value: 'cancelled', label: 'Cancelled' },
 ];
@@ -21,6 +24,9 @@ function statusBadgeVariant(status) {
   if (status === 'completed') return 'success';
   if (status === 'cancelled') return 'error';
   if (status === 'pending') return 'warning';
+  if (status === 'preparing') return 'warning';
+  if (status === 'ready') return 'success';
+  if (status === 'payment') return 'info';
   return 'neutral';
 }
 
@@ -125,7 +131,12 @@ export default function OrderHistoryPage() {
                   <tr key={order.id} className="border-t border-slate-200">
                     <td className="px-4 py-3 font-medium text-slate-900">{order.customerName || '—'}</td>
                     <td className="px-4 py-3 text-slate-600">{order.customerPhone || '—'}</td>
-                    <td className="px-4 py-3 text-slate-600 capitalize">{order.orderType}</td>
+                    <td className="px-4 py-3 text-slate-600 capitalize">
+                      {order.orderType}
+                      {order.deliveryCompany && (
+                        <span className="block text-xs text-slate-400 normal-case">🚚 {order.deliveryCompany}</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-slate-600">{order.items?.length || 0}</td>
                     <td className="px-4 py-3 text-slate-900">{formatCurrency(order.total)}</td>
                     <td className="px-4 py-3">

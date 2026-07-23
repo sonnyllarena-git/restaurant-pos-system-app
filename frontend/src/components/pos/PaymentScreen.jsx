@@ -5,14 +5,14 @@ import { useOrder } from '../../hooks/useOrder';
 import { NotificationContext } from '../../context/NotificationContext';
 import PaymentCash from './PaymentCash';
 import OrderSuccess from './OrderSuccess';
+import OrderConfirmationModal from './OrderConfirmationModal';
 import Input from '../common/Input';
-import { generateId } from '../../utils/helpers';
-import { saveOrder } from '../../services/dbService';
-import { ORDER_TYPES } from '../../utils/constants';
+import { saveOrder, markTableOccupied } from '../../services/dbService';
+import { ORDER_TYPES, SERVICE_TYPES } from '../../utils/constants';
 
 export default function PaymentScreen() {
   const { items, subtotal, tax, total, clearCart } = useCart();
-  const { selectedTable, serviceType, resetOrder } = useOrder();
+  const { selectedTable, serviceType, deliveryMethod, deliveryCompany, resetOrder } = useOrder();
   const { showError } = useContext(NotificationContext);
   const navigate = useNavigate();
   const [completedOrder, setCompletedOrder] = useState(null);
@@ -21,12 +21,14 @@ export default function PaymentScreen() {
   const [nameError, setNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [pendingPayment, setPendingPayment] = useState(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const orderLabel = selectedTable ? `Table ${selectedTable}` : serviceType === 'takeout' ? 'Takeout Order' : 'Delivery Order';
 
   const handleCancel = () => navigate('/pos');
 
-  const handleConfirmPayment = async ({ amountReceived, change }) => {
+  const handleReviewPayment = ({ amountReceived, change }) => {
     let hasError = false;
     if (!customerName.trim()) {
       setNameError('Customer name is required');
@@ -41,6 +43,11 @@ export default function PaymentScreen() {
       setPhoneError('');
     }
     if (hasError) return;
+    setPendingPayment({ amountReceived, change });
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmOrder = async () => {
     setSaving(true);
     try {
       const savedOrder = await saveOrder({
@@ -50,6 +57,8 @@ export default function PaymentScreen() {
         orderSource: null,
         serviceType,
         tableNumber: selectedTable || null,
+        deliveryMethod,
+        deliveryCompany,
         items: items.map((item) => ({
           id: item.cartItemId,
           name: item.menuItem.name,
@@ -57,15 +66,22 @@ export default function PaymentScreen() {
           unitPrice: item.menuItem.price,
           total: item.lineTotal,
           specialRequests: item.specialNotes || '',
-          status: 'ready',
+          status: 'pending',
         })),
         subtotal,
         tax,
         total,
-        status: 'completed',
-        completedAt: new Date().toISOString(),
+        status: 'pending',
+        amountReceived: pendingPayment.amountReceived,
+        change: pendingPayment.change,
+        paymentMethod: 'cash',
       });
 
+      if (serviceType === SERVICE_TYPES.DINE_IN && selectedTable) {
+        await markTableOccupied(selectedTable, savedOrder.id);
+      }
+
+      setShowConfirmation(false);
       setCompletedOrder({
         id: savedOrder.id,
         orderLabel,
@@ -73,8 +89,8 @@ export default function PaymentScreen() {
         subtotal,
         tax,
         total,
-        amountReceived,
-        change,
+        amountReceived: pendingPayment.amountReceived,
+        change: pendingPayment.change,
         createdAt: savedOrder.createdAt,
       });
     } catch (err) {
@@ -125,7 +141,28 @@ export default function PaymentScreen() {
           />
         </div>
       </div>
-      <PaymentCash amountDue={total} onConfirm={handleConfirmPayment} onCancel={handleCancel} loading={saving} />
+      <PaymentCash amountDue={total} onConfirm={handleReviewPayment} onCancel={handleCancel} loading={saving} />
+
+      {showConfirmation && (
+        <OrderConfirmationModal
+          orderType="regular"
+          serviceType={serviceType}
+          tableNumber={selectedTable}
+          deliveryMethod={deliveryMethod}
+          deliveryCompany={deliveryCompany}
+          customerName={customerName}
+          customerPhone={customerPhone}
+          items={items}
+          subtotal={subtotal}
+          tax={tax}
+          total={total}
+          onBack={() => setShowConfirmation(false)}
+          onCancel={handleCancel}
+          onConfirm={handleConfirmOrder}
+          saving={saving}
+        />
+      )}
+
       {completedOrder && <OrderSuccess order={completedOrder} onDone={handleDone} />}
     </div>
   );

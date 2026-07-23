@@ -3,6 +3,7 @@ import StatusFilter from './StatusFilter';
 import OrderQueue from './OrderQueue';
 import KitchenSettings from './KitchenSettings';
 import ServiceConfirmationModal from './ServiceConfirmationModal';
+import TableManagementTab from './TableManagementTab';
 import Loader from '../common/Loader';
 import PageHeader from '../common/PageHeader';
 import Modal from '../common/Modal';
@@ -15,9 +16,14 @@ import {
   updateOrderServiceType,
 } from '../../services/dbService';
 
+const TABS = [
+  { value: 'orders', label: 'Orders' },
+  { value: 'tables', label: 'Table Management' },
+];
+
 function deriveOrderStatus(items) {
   if (items.every((item) => item.status === 'ready')) return 'ready';
-  if (items.some((item) => item.status === 'in_progress' || item.status === 'ready')) return 'in_progress';
+  if (items.some((item) => item.status === 'preparing' || item.status === 'ready')) return 'preparing';
   return 'pending';
 }
 
@@ -46,6 +52,7 @@ function sortQueueOrders(orders) {
 }
 
 export default function KitchenDisplay() {
+  const [activeTab, setActiveTab] = useState('orders');
   const [orders, setOrders] = useState(null);
   const [activeFilter, setActiveFilter] = useState('all');
   const [nightMode, setNightMode] = useState(false);
@@ -88,14 +95,31 @@ export default function KitchenDisplay() {
     await loadOrders();
   };
 
-  const handleStartComplete = (order) => setCompletingOrder(order);
+  const handleStartComplete = async (order) => {
+    if (order.orderType !== 'advance') {
+      setCompleting(true);
+      try {
+        await updateOrderStatus(order.id, 'completed');
+        await loadOrders();
+        showSuccess('Order completed');
+      } catch (err) {
+        showError('Failed to complete order');
+      } finally {
+        setCompleting(false);
+      }
+      return;
+    }
+    setCompletingOrder(order);
+  };
 
   const handleServiceConfirmed = async (serviceType) => {
     if (serviceType !== completingOrder.serviceType) {
       await updateOrderServiceType(completingOrder.id, serviceType);
     }
+    await updateOrderStatus(completingOrder.id, 'payment');
     setPayingOrder({ ...completingOrder, serviceType });
     setCompletingOrder(null);
+    await loadOrders();
   };
 
   const handleCompletePayment = async (_payment) => {
@@ -124,16 +148,37 @@ export default function KitchenDisplay() {
               Kitchen Display
             </h2>
             <p className={`text-sm ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
-              {orders === null ? 'Loading...' : `${orders.length} active orders`}
+              {activeTab === 'orders' ? (orders === null ? 'Loading...' : `${orders.length} active orders`) : 'Table occupancy'}
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <StatusFilter activeFilter={activeFilter} onChange={setActiveFilter} />
+            {activeTab === 'orders' && <StatusFilter activeFilter={activeFilter} onChange={setActiveFilter} />}
             <KitchenSettings nightMode={nightMode} onToggle={() => setNightMode((v) => !v)} />
           </div>
         </div>
-        {orders === null ? <Loader label="Loading orders..." /> : (
-          <OrderQueue orders={filteredOrders} onStatusChange={handleStatusChange} onCompleteOrder={handleStartComplete} />
+
+        <div className="flex gap-2 mb-6">
+          {TABS.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
+              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                activeTab === tab.value ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'orders' ? (
+          orders === null ? (
+            <Loader label="Loading orders..." />
+          ) : (
+            <OrderQueue orders={filteredOrders} onStatusChange={handleStatusChange} onCompleteOrder={handleStartComplete} onOrderEdited={loadOrders} />
+          )
+        ) : (
+          <TableManagementTab />
         )}
       </div>
 

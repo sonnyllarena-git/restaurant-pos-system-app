@@ -1,16 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Button from '../common/Button';
 import OrderTimer from './OrderTimer';
+import EditOrderModal from './EditOrderModal';
 import { useAuth } from '../../hooks/useAuth';
 
-export default function OrderCard({ order, onStatusChange, onCompleteOrder }) {
+export default function OrderCard({ order, onStatusChange, onCompleteOrder, onOrderEdited }) {
   const { user } = useAuth();
+  const [editing, setEditing] = useState(false);
   const canComplete = user?.role === 'admin' || user?.role === 'cashier';
+  const canEdit = user?.role === 'admin';
   const getStatusColor = (status) =>
     ({
       pending: 'bg-red-100 text-red-900 border-red-300',
-      in_progress: 'bg-amber-100 text-amber-900 border-amber-300',
+      preparing: 'bg-amber-100 text-amber-900 border-amber-300',
       ready: 'bg-green-100 text-green-900 border-green-300',
+      payment: 'bg-blue-100 text-blue-900 border-blue-300',
     }[status] || 'bg-slate-100');
 
   const isAdvance = order.orderType === 'advance';
@@ -19,6 +23,8 @@ export default function OrderCard({ order, onStatusChange, onCompleteOrder }) {
     : order.serviceType
     ? order.serviceType.replace('_', ' ').toUpperCase()
     : 'ORDER';
+
+  const completeButtonLabel = isAdvance ? 'PAYMENT' : 'COMPLETE ORDER';
 
   return (
     <OrderTimer createdAt={order.createdAt}>
@@ -33,6 +39,12 @@ export default function OrderCard({ order, onStatusChange, onCompleteOrder }) {
               )}
               <h3 className="text-lg font-bold text-slate-900">{label}</h3>
               {order.customerName && <p className="text-sm text-slate-600">{order.customerName}</p>}
+              {order.deliveryMethod === 'company' && order.deliveryCompany && (
+                <p className="text-xs text-slate-500">🚚 {order.deliveryCompany}</p>
+              )}
+              {order.deliveryMethod === 'walk_in' && (
+                <p className="text-xs text-slate-500">🚶 Walk-in Customer</p>
+              )}
               {isAdvance ? (
                 <p className="text-sm font-medium text-blue-700">
                   {order.orderDate} • {order.orderTime}
@@ -65,22 +77,39 @@ export default function OrderCard({ order, onStatusChange, onCompleteOrder }) {
                   className="px-2 py-1 border border-slate-300 rounded text-sm"
                 >
                   <option value="pending">Pending</option>
-                  <option value="in_progress">In Progress</option>
+                  <option value="preparing">Preparing</option>
                   <option value="ready">Ready</option>
                 </select>
               </div>
             ))}
           </div>
-          {order.status === 'ready' ? (
-            canComplete && (
-              <Button className="w-full" onClick={() => onCompleteOrder(order)}>
-                COMPLETE ORDER
+          <div className="flex gap-2">
+            {order.status === 'ready' ? (
+              canComplete && (
+                <Button className="flex-1" onClick={() => onCompleteOrder(order)}>
+                  {completeButtonLabel}
+                </Button>
+              )
+            ) : (
+              <Button className="flex-1" onClick={() => onStatusChange(order.id, null, 'ready')}>
+                MARK ENTIRE ORDER READY
               </Button>
-            )
-          ) : (
-            <Button className="w-full" onClick={() => onStatusChange(order.id, null, 'ready')}>
-              MARK ENTIRE ORDER READY
-            </Button>
+            )}
+            {canEdit && (
+              <Button variant="secondary" onClick={() => setEditing(true)}>
+                EDIT
+              </Button>
+            )}
+          </div>
+          {editing && (
+            <EditOrderModal
+              order={order}
+              onClose={() => setEditing(false)}
+              onSaved={() => {
+                setEditing(false);
+                onOrderEdited && onOrderEdited();
+              }}
+            />
           )}
         </div>
       )}

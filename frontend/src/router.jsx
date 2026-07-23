@@ -17,9 +17,6 @@ import UnauthorizedPage from './pages/UnauthorizedPage';
 
 import POSScreen from './components/pos/POSScreen';
 import PaymentScreen from './components/pos/PaymentScreen';
-import DailyDashboard from './components/reports/DailyDashboard';
-import DailyReport from './components/reports/DailyReport';
-import MonthlyReport from './components/reports/MonthlyReport';
 
 export default function AppRouter() {
   return (
@@ -80,11 +77,7 @@ export default function AppRouter() {
               <ReportsPage />
             </ProtectedRoute>
           }
-        >
-          <Route index element={<DailyDashboard />} />
-          <Route path="daily" element={<DailyReport />} />
-          <Route path="monthly" element={<MonthlyReport />} />
-        </Route>
+        />
 
         <Route
           path="/staff"

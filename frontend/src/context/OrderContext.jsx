@@ -7,11 +7,15 @@ export function OrderProvider({ children }) {
   const [selectedTable, setSelectedTable] = useState(null);
   const [serviceType, setServiceType] = useState(null);
   const [orderType, setOrderType] = useState(null);
+  const [deliveryMethod, setDeliveryMethod] = useState(null);
+  const [deliveryCompany, setDeliveryCompany] = useState(null);
 
   const resetOrder = () => {
     setSelectedTable(null);
     setServiceType(null);
     setOrderType(null);
+    setDeliveryMethod(null);
+    setDeliveryCompany(null);
   };
 
   return (
@@ -23,6 +27,10 @@ export function OrderProvider({ children }) {
         setServiceType,
         orderType,
         setOrderType,
+        deliveryMethod,
+        setDeliveryMethod,
+        deliveryCompany,
+        setDeliveryCompany,
         resetOrder,
         SERVICE_TYPES,
       }}
