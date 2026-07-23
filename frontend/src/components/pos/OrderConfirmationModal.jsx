@@ -42,6 +42,11 @@ export default function OrderConfirmationModal({
   return (
     <Modal title="Confirm Order" onClose={onBack} size="md">
       <div className="space-y-4">
+        <div className="bg-red-50 border-4 border-red-500 rounded p-4 text-center">
+          <p className="text-xl font-extrabold text-red-600">📢 PLEASE READ TO CUSTOMER</p>
+          <p className="text-sm text-red-700 mt-1">Confirm every detail below with the customer before submitting.</p>
+        </div>
+
         <div className="border border-slate-300 rounded p-3 space-y-1 bg-slate-50">
           <div className="flex justify-between text-sm">
             <span className="text-slate-600">Order Type</span>

@@ -3,6 +3,7 @@ import Badge from '../common/Badge';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Loader from '../common/Loader';
+import ReceiptOrderReport from './ReceiptOrderReport';
 import { formatCurrency, formatDate, formatTime } from '../../utils/formatters';
 
 const STATUS_OPTIONS = [
@@ -23,6 +24,7 @@ const COLUMNS = [
   { key: 'status', label: 'Status' },
   { key: 'completedAt', label: 'Completed Time' },
   { key: 'serviceType', label: 'Service Type' },
+  { key: null, label: '' },
 ];
 
 const PAGE_SIZE = 10;
@@ -35,6 +37,10 @@ function statusBadgeVariant(status) {
   if (status === 'ready') return 'success';
   if (status === 'payment') return 'info';
   return 'neutral';
+}
+
+function serviceLabel(serviceType) {
+  return (serviceType || '').replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function sortValue(order, key) {
@@ -73,6 +79,7 @@ export default function SummaryTab({ orders, loading }) {
   const [sortKey, setSortKey] = useState('completedAt');
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(1);
+  const [expandedId, setExpandedId] = useState(null);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -99,7 +106,10 @@ export default function SummaryTab({ orders, loading }) {
   const currentPage = Math.min(page, totalPages);
   const pageRows = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
+  const totalSales = useMemo(() => sorted.reduce((sum, o) => sum + (o.total || 0), 0), [sorted]);
+
   const handleSort = (key) => {
+    if (!key) return;
     if (sortKey === key) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
@@ -139,6 +149,10 @@ export default function SummaryTab({ orders, loading }) {
           ))}
         </select>
         <div className="flex-1" />
+        <div className="text-right">
+          <p className="text-xs text-slate-500 uppercase tracking-wide">Total Sales</p>
+          <p className="text-xl font-bold text-orange-500">{formatCurrency(totalSales)}</p>
+        </div>
         <Button variant="secondary" size="sm" onClick={() => downloadCsv(sorted)} disabled={sorted.length === 0}>
           EXPORT CSV
         </Button>
@@ -154,32 +168,52 @@ export default function SummaryTab({ orders, loading }) {
                 <tr>
                   {COLUMNS.map((col) => (
                     <th
-                      key={col.key}
-                      className="px-4 py-3 cursor-pointer select-none hover:bg-slate-200"
+                      key={col.key || 'toggle'}
+                      className={`px-4 py-3 select-none ${col.key ? 'cursor-pointer hover:bg-slate-200' : ''}`}
                       onClick={() => handleSort(col.key)}
                     >
                       {col.label}
-                      {sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                      {col.key && sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {pageRows.map((order) => (
-                  <tr key={order.id} className="border-t border-slate-200">
-                    <td className="px-4 py-3 text-slate-900 font-medium">{order.orderNumber}</td>
-                    <td className="px-4 py-3 text-slate-900">{order.customerName || '—'}</td>
-                    <td className="px-4 py-3 text-slate-600">{order.items?.length || 0}</td>
-                    <td className="px-4 py-3 text-slate-900">{formatCurrency(order.total)}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant={statusBadgeVariant(order.status)}>{order.status.toUpperCase()}</Badge>
-                    </td>
-                    <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
-                      {order.completedAt ? `${formatDate(order.completedAt)} ${formatTime(order.completedAt)}` : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-slate-600 capitalize">{order.serviceType || '—'}</td>
-                  </tr>
-                ))}
+                {pageRows.map((order) => {
+                  const isExpanded = expandedId === order.id;
+                  return (
+                    <React.Fragment key={order.id}>
+                      <tr
+                        className="border-t border-slate-200 cursor-pointer hover:bg-slate-50"
+                        onClick={() => setExpandedId(isExpanded ? null : order.id)}
+                      >
+                        <td className="px-4 py-3 text-slate-900 font-medium">{order.orderNumber}</td>
+                        <td className="px-4 py-3 text-slate-900">{order.customerName || '—'}</td>
+                        <td className="px-4 py-3 text-slate-600">{order.items?.length || 0}</td>
+                        <td className="px-4 py-3 text-slate-900">{formatCurrency(order.total)}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant={statusBadgeVariant(order.status)}>{order.status.toUpperCase()}</Badge>
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
+                          {order.completedAt ? `${formatDate(order.completedAt)} ${formatTime(order.completedAt)}` : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600">{serviceLabel(order.serviceType) || '—'}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button className="text-sm text-orange-600 hover:text-orange-700 font-medium">
+                            {isExpanded ? 'Hide details ▲' : 'View details ▼'}
+                          </button>
+                        </td>
+                      </tr>
+                      {isExpanded && (
+                        <tr className="border-t border-slate-100 bg-slate-50">
+                          <td colSpan={COLUMNS.length} className="px-4 py-4">
+                            <ReceiptOrderReport order={order} />
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>

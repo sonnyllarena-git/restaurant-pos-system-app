@@ -5,7 +5,7 @@ import Input from '../common/Input';
 import { useAuth } from '../../hooks/useAuth';
 import { NotificationContext } from '../../context/NotificationContext';
 import { SettingsContext } from '../../context/SettingsContext';
-import { editOrder, getMenuItems } from '../../services/dbService';
+import { editOrder, getMenuItems, removeOrderFromTable, markTableOccupied } from '../../services/dbService';
 import { calculateTax, calculateTotal } from '../../utils/calculations';
 import { formatCurrency } from '../../utils/formatters';
 import { generateId } from '../../utils/helpers';
@@ -71,13 +71,16 @@ export default function EditOrderModal({ order, onClose, onSaved }) {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const nextTableNumber = serviceType === SERVICE_TYPES.DINE_IN ? (tableNumber ? Number(tableNumber) : null) : null;
+      const prevTableNumber = order.serviceType === SERVICE_TYPES.DINE_IN ? order.tableNumber : null;
+
       await editOrder(
         order.id,
         {
           customerName: customerName.trim(),
           customerPhone: customerPhone.trim(),
           serviceType,
-          tableNumber: serviceType === SERVICE_TYPES.DINE_IN ? (tableNumber ? Number(tableNumber) : null) : null,
+          tableNumber: nextTableNumber,
           deliveryMethod: serviceType === SERVICE_TYPES.DELIVERY ? deliveryMethod : null,
           deliveryCompany:
             serviceType === SERVICE_TYPES.DELIVERY && deliveryMethod === 'company' ? deliveryCompany || null : null,
@@ -85,6 +88,14 @@ export default function EditOrderModal({ order, onClose, onSaved }) {
         },
         user?.fullName || user?.username || 'Unknown'
       );
+
+      // editOrder only patches the order record -- table occupancy lives in a separate
+      // `tables` store and has to be reconciled by hand whenever dine-in/table changes.
+      if (prevTableNumber !== nextTableNumber) {
+        if (prevTableNumber) await removeOrderFromTable(prevTableNumber, order.id);
+        if (nextTableNumber) await markTableOccupied(nextTableNumber, order.id);
+      }
+
       showSuccess('Order updated');
       onSaved && onSaved();
     } catch (err) {

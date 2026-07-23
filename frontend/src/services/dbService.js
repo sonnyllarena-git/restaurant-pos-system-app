@@ -275,6 +275,16 @@ export async function seedTablesIfEmpty(count = 9) {
   return getAllTables();
 }
 
+export async function removeOrderFromTable(tableNumber, orderId) {
+  if (!tableNumber) return null;
+  const table = await getTableByNumber(tableNumber);
+  if (!table) return null;
+  const activeOrderIds = (table.activeOrderIds || []).filter((id) => id !== orderId);
+  const updated = { ...table, activeOrderIds, status: activeOrderIds.length > 0 ? 'occupied' : 'available' };
+  await withStore(TABLES_STORE, 'readwrite', (store) => store.put(updated));
+  return updated;
+}
+
 export async function markTableOccupied(tableNumber, orderId) {
   const table = await getTableByNumber(tableNumber);
   if (!table) return null;
