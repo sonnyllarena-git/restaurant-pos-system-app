@@ -1,10 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import StatusFilter from './StatusFilter';
 import OrderQueue from './OrderQueue';
 import KitchenSettings from './KitchenSettings';
+import ServiceConfirmationModal from './ServiceConfirmationModal';
 import Loader from '../common/Loader';
 import PageHeader from '../common/PageHeader';
-import { getAllOrders, updateOrderItemStatus, updateOrderStatus } from '../../services/dbService';
+import Modal from '../common/Modal';
+import PaymentCash from '../pos/PaymentCash';
+import { NotificationContext } from '../../context/NotificationContext';
+import {
+  getAllOrders,
+  updateOrderItemStatus,
+  updateOrderStatus,
+  updateOrderServiceType,
+} from '../../services/dbService';
+import { exportOrdersToExcel } from '../../utils/excelExport';
 
 function deriveOrderStatus(items) {
   if (items.every((item) => item.status === 'ready')) return 'ready';
@@ -40,6 +50,10 @@ export default function KitchenDisplay() {
   const [orders, setOrders] = useState(null);
   const [activeFilter, setActiveFilter] = useState('all');
   const [nightMode, setNightMode] = useState(false);
+  const [completingOrder, setCompletingOrder] = useState(null);
+  const [payingOrder, setPayingOrder] = useState(null);
+  const [completing, setCompleting] = useState(false);
+  const { showSuccess, showError, showInfo } = useContext(NotificationContext);
 
   const loadOrders = useCallback(async () => {
     const allOrders = await getAllOrders();
@@ -75,6 +89,32 @@ export default function KitchenDisplay() {
     await loadOrders();
   };
 
+  const handleStartComplete = (order) => setCompletingOrder(order);
+
+  const handleServiceConfirmed = async (serviceType) => {
+    if (serviceType !== completingOrder.serviceType) {
+      await updateOrderServiceType(completingOrder.id, serviceType);
+    }
+    setPayingOrder({ ...completingOrder, serviceType });
+    setCompletingOrder(null);
+  };
+
+  const handleCompletePayment = async (_payment) => {
+    setCompleting(true);
+    try {
+      await updateOrderStatus(payingOrder.id, 'completed');
+      const allOrders = await getAllOrders();
+      exportOrdersToExcel(allOrders, { onFallbackHint: showInfo });
+      setPayingOrder(null);
+      await loadOrders();
+      showSuccess('Order completed');
+    } catch (err) {
+      showError('Failed to complete order');
+    } finally {
+      setCompleting(false);
+    }
+  };
+
   const filteredOrders = orders === null ? [] : activeFilter === 'all' ? orders : orders.filter((o) => o.status === activeFilter);
 
   return (
@@ -96,9 +136,28 @@ export default function KitchenDisplay() {
           </div>
         </div>
         {orders === null ? <Loader label="Loading orders..." /> : (
-          <OrderQueue orders={filteredOrders} onStatusChange={handleStatusChange} />
+          <OrderQueue orders={filteredOrders} onStatusChange={handleStatusChange} onCompleteOrder={handleStartComplete} />
         )}
       </div>
+
+      {completingOrder && (
+        <ServiceConfirmationModal
+          order={completingOrder}
+          onClose={() => setCompletingOrder(null)}
+          onContinue={handleServiceConfirmed}
+        />
+      )}
+
+      {payingOrder && (
+        <Modal title="Complete Order — Payment" onClose={() => !completing && setPayingOrder(null)} size="sm">
+          <PaymentCash
+            amountDue={payingOrder.total}
+            onConfirm={handleCompletePayment}
+            onCancel={() => setPayingOrder(null)}
+            loading={completing}
+          />
+        </Modal>
+      )}
     </div>
   );
 }

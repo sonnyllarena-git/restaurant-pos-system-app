@@ -14,11 +14,13 @@ import { ORDER_TYPES } from '../../utils/constants';
 export default function PaymentScreen() {
   const { items, subtotal, tax, total, clearCart } = useCart();
   const { selectedTable, serviceType, resetOrder } = useOrder();
-  const { showError } = useContext(NotificationContext);
+  const { showError, showInfo } = useContext(NotificationContext);
   const navigate = useNavigate();
   const [completedOrder, setCompletedOrder] = useState(null);
   const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [nameError, setNameError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const orderLabel = selectedTable ? `Table ${selectedTable}` : serviceType === 'takeout' ? 'Takeout Order' : 'Delivery Order';
@@ -26,16 +28,25 @@ export default function PaymentScreen() {
   const handleCancel = () => navigate('/pos');
 
   const handleConfirmPayment = async ({ amountReceived, change }) => {
+    let hasError = false;
     if (!customerName.trim()) {
       setNameError('Customer name is required');
-      return;
+      hasError = true;
+    } else {
+      setNameError('');
     }
-    setNameError('');
+    if (!customerPhone.trim()) {
+      setPhoneError('Customer phone is required');
+      hasError = true;
+    } else {
+      setPhoneError('');
+    }
+    if (hasError) return;
     setSaving(true);
     try {
       const savedOrder = await saveOrder({
         customerName: customerName.trim(),
-        customerPhone: '',
+        customerPhone: customerPhone.trim(),
         orderType: ORDER_TYPES.REGULAR,
         orderSource: null,
         serviceType,
@@ -57,7 +68,7 @@ export default function PaymentScreen() {
       });
 
       const allOrders = await getAllOrders();
-      exportOrdersToExcel(allOrders);
+      exportOrdersToExcel(allOrders, { onFallbackHint: showInfo });
 
       setCompletedOrder({
         id: savedOrder.id,
@@ -92,17 +103,31 @@ export default function PaymentScreen() {
     <div className="flex flex-col items-center justify-center h-full p-8">
       <h2 className="text-2xl font-bold tracking-tight text-slate-900 mb-1">Payment</h2>
       <p className="text-sm text-slate-600 mb-8">{orderLabel}</p>
-      <div className="w-full max-w-sm mb-6">
-        <label htmlFor="customerName" className="block text-sm font-medium text-slate-700 mb-2">
-          Customer Name
-        </label>
-        <Input
-          id="customerName"
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          placeholder="Customer name"
-          error={nameError}
-        />
+      <div className="w-full max-w-sm mb-6 space-y-4">
+        <div>
+          <label htmlFor="customerName" className="block text-sm font-medium text-slate-700 mb-2">
+            Customer Name
+          </label>
+          <Input
+            id="customerName"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            placeholder="Customer name"
+            error={nameError}
+          />
+        </div>
+        <div>
+          <label htmlFor="customerPhone" className="block text-sm font-medium text-slate-700 mb-2">
+            Customer Phone
+          </label>
+          <Input
+            id="customerPhone"
+            value={customerPhone}
+            onChange={(e) => setCustomerPhone(e.target.value)}
+            placeholder="09XX XXX XXXX"
+            error={phoneError}
+          />
+        </div>
       </div>
       <PaymentCash amountDue={total} onConfirm={handleConfirmPayment} onCancel={handleCancel} loading={saving} />
       {completedOrder && <OrderSuccess order={completedOrder} onDone={handleDone} />}

@@ -6,15 +6,26 @@ export const OrderContext = createContext();
 export function OrderProvider({ children }) {
   const [selectedTable, setSelectedTable] = useState(null);
   const [serviceType, setServiceType] = useState(null);
+  const [orderType, setOrderType] = useState(null);
 
   const resetOrder = () => {
     setSelectedTable(null);
     setServiceType(null);
+    setOrderType(null);
   };
 
   return (
     <OrderContext.Provider
-      value={{ selectedTable, setSelectedTable, serviceType, setServiceType, resetOrder, SERVICE_TYPES }}
+      value={{
+        selectedTable,
+        setSelectedTable,
+        serviceType,
+        setServiceType,
+        orderType,
+        setOrderType,
+        resetOrder,
+        SERVICE_TYPES,
+      }}
     >
       {children}
     </OrderContext.Provider>

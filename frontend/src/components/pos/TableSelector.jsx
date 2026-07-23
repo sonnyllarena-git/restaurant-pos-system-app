@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useOrder } from '../../hooks/useOrder';
-import Button from '../common/Button';
-import { TABLE_STATUSES, SERVICE_TYPES } from '../../utils/constants';
+import { TABLE_STATUSES } from '../../utils/constants';
 
 const MOCK_TABLES = [
   { number: 1, status: TABLE_STATUSES.AVAILABLE },
@@ -22,26 +21,20 @@ const statusStyles = {
 };
 
 export default function TableSelector() {
-  const { setSelectedTable, setServiceType } = useOrder();
+  const { setSelectedTable } = useOrder();
   const [tables] = useState(MOCK_TABLES);
 
   const handleSelectTable = (table) => {
     if (table.status !== TABLE_STATUSES.AVAILABLE) return;
-    setServiceType(SERVICE_TYPES.DINE_IN);
     setSelectedTable(table.number);
-  };
-
-  const handleQuickStart = (type) => {
-    setServiceType(type);
-    setSelectedTable(null);
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-full p-8">
       <h2 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">Select a Table</h2>
-      <p className="text-sm text-slate-600 mb-6">Choose an available table or start a takeout / delivery order.</p>
+      <p className="text-sm text-slate-600 mb-6">Choose an available table.</p>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-3 gap-4">
         {tables.map((table) => (
           <button
             key={table.number}
@@ -52,15 +45,6 @@ export default function TableSelector() {
             <span className="text-xs capitalize">{table.status}</span>
           </button>
         ))}
-      </div>
-
-      <div className="flex gap-4">
-        <Button variant="secondary" size="lg" onClick={() => handleQuickStart(SERVICE_TYPES.TAKEOUT)}>
-          TAKEOUT
-        </Button>
-        <Button variant="secondary" size="lg" onClick={() => handleQuickStart(SERVICE_TYPES.DELIVERY)}>
-          DELIVERY
-        </Button>
       </div>
     </div>
   );

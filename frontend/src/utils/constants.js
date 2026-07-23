@@ -8,6 +8,7 @@ export const SERVICE_TYPES = {
   DINE_IN: 'dine_in',
   TAKEOUT: 'takeout',
   DELIVERY: 'delivery',
+  PICKUP: 'pickup',
 };
 
 export const ORDER_STATUSES = {

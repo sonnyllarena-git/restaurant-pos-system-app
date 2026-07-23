@@ -1,13 +1,42 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { SettingsContext } from '../../context/SettingsContext';
 import { NotificationContext } from '../../context/NotificationContext';
 import Button from '../common/Button';
 import { formatDate, formatTime } from '../../utils/formatters';
+import { connectOrdersFile, getConnectedFileName, isFileSystemAccessSupported } from '../../utils/excelExport';
 
 export default function BackupSettings() {
   const { settings, updateSettings } = useContext(SettingsContext);
-  const { showSuccess } = useContext(NotificationContext);
+  const { showSuccess, showError } = useContext(NotificationContext);
   const [form, setForm] = useState(settings.backup);
+  const [connectedFile, setConnectedFile] = useState(null);
+  const [connecting, setConnecting] = useState(false);
+  const supported = isFileSystemAccessSupported();
+
+  useEffect(() => {
+    getConnectedFileName().then(setConnectedFile);
+  }, []);
+
+  const handleConnectFile = async () => {
+    // showSaveFilePicker() must be the first await here — no work may precede it in
+    // this handler or Chromium drops the user-gesture requirement it needs.
+    setConnecting(true);
+    try {
+      const handle = await connectOrdersFile();
+      setConnectedFile(handle.name);
+      showSuccess(`Connected to ${handle.name}. All future order exports will update this file.`);
+    } catch (err) {
+      if (err?.name === 'AbortError') {
+        // User dismissed the native picker — not an error worth surfacing.
+      } else if (err?.message === 'NOT_SUPPORTED') {
+        showError('This browser does not support connecting a single Excel file. Orders will download individually instead.');
+      } else {
+        showError('Could not connect the Excel file');
+      }
+    } finally {
+      setConnecting(false);
+    }
+  };
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -54,6 +83,23 @@ export default function BackupSettings() {
         <Button type="submit">SAVE</Button>
         <Button type="button" variant="secondary" onClick={handleBackupNow}>
           BACKUP NOW
+        </Button>
+      </div>
+
+      <div className="border-t border-slate-200 pt-4 mt-2">
+        <h3 className="text-xl font-semibold tracking-tight text-slate-900 mb-2">Data Export</h3>
+        <p className="text-sm text-slate-600 mb-3">
+          {connectedFile
+            ? `Connected: ${connectedFile} — every order export updates this file in place.`
+            : 'Not connected — using per-order downloads.'}
+        </p>
+        {!supported && (
+          <p className="text-sm text-amber-700 mb-3">
+            This browser doesn't support connecting a single file. Orders will continue to download individually.
+          </p>
+        )}
+        <Button type="button" variant="secondary" onClick={handleConnectFile} disabled={!supported} loading={connecting}>
+          Connect Orders.xlsx
         </Button>
       </div>
     </form>

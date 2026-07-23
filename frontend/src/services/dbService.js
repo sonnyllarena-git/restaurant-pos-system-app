@@ -88,6 +88,8 @@ export async function saveOrder(orderData) {
     createdAt: orderData.createdAt || new Date().toISOString(),
     completedAt: orderData.completedAt || null,
     cancelledAt: orderData.cancelledAt || null,
+    cancelReason: orderData.cancelReason || null,
+    cancelledBy: orderData.cancelledBy || null,
     notes: orderData.notes || '',
   };
   await withStore(ORDERS_STORE, 'readwrite', (store) => store.put(order));
@@ -111,6 +113,33 @@ export async function updateOrderStatus(orderId, status) {
   const updated = { ...order, status };
   if (status === 'completed') updated.completedAt = new Date().toISOString();
   if (status === 'cancelled') updated.cancelledAt = new Date().toISOString();
+  await withStore(ORDERS_STORE, 'readwrite', (store) => store.put(updated));
+  return updated;
+}
+
+export async function cancelOrder(orderId, reason, cancelledBy) {
+  const order = await getOrderById(orderId);
+  if (!order) return null;
+  const updated = {
+    ...order,
+    status: 'cancelled',
+    cancelledAt: new Date().toISOString(),
+    cancelReason: reason || null,
+    cancelledBy: cancelledBy || null,
+  };
+  await withStore(ORDERS_STORE, 'readwrite', (store) => store.put(updated));
+  return updated;
+}
+
+export async function getAllPendingAdvanceOrders() {
+  const orders = await getAllOrders();
+  return orders.filter((order) => order.orderType === 'advance' && order.status === 'pending');
+}
+
+export async function updateOrderServiceType(orderId, serviceType) {
+  const order = await getOrderById(orderId);
+  if (!order) return null;
+  const updated = { ...order, serviceType };
   await withStore(ORDERS_STORE, 'readwrite', (store) => store.put(updated));
   return updated;
 }

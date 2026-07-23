@@ -6,7 +6,8 @@ import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import { UIContext } from '../context/UIContext';
 import { NotificationContext } from '../context/NotificationContext';
-import { getOrderHistory, updateOrderStatus } from '../services/dbService';
+import { useAuth } from '../hooks/useAuth';
+import { getOrderHistory, cancelOrder } from '../services/dbService';
 import { formatCurrency } from '../utils/formatters';
 
 const STATUS_OPTIONS = [
@@ -31,6 +32,8 @@ export default function OrderHistoryPage() {
   const [dateTo, setDateTo] = useState('');
   const { confirm } = useContext(UIContext);
   const { showSuccess } = useContext(NotificationContext);
+  const { user } = useAuth();
+  const canCancel = user?.role === 'admin';
 
   const loadOrders = useCallback(async () => {
     const history = await getOrderHistory();
@@ -63,7 +66,7 @@ export default function OrderHistoryPage() {
       confirmLabel: 'CANCEL ORDER',
       danger: true,
       onConfirm: async () => {
-        await updateOrderStatus(order.id, 'cancelled');
+        await cancelOrder(order.id, 'Cancelled by staff', user?.username || null);
         await loadOrders();
         showSuccess('Order cancelled');
       },
@@ -139,7 +142,7 @@ export default function OrderHistoryPage() {
                       {order.orderType === 'advance' ? `${order.orderDate} ${order.orderTime}` : '—'}
                     </td>
                     <td className="px-4 py-3">
-                      {order.status === 'pending' && (
+                      {order.status === 'pending' && canCancel && (
                         <Button variant="ghost" size="sm" onClick={() => handleCancel(order)}>
                           Cancel
                         </Button>

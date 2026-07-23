@@ -1,8 +1,11 @@
 import React from 'react';
 import Button from '../common/Button';
 import OrderTimer from './OrderTimer';
+import { useAuth } from '../../hooks/useAuth';
 
-export default function OrderCard({ order, onStatusChange }) {
+export default function OrderCard({ order, onStatusChange, onCompleteOrder }) {
+  const { user } = useAuth();
+  const canComplete = user?.role === 'admin' || user?.role === 'cashier';
   const getStatusColor = (status) =>
     ({
       pending: 'bg-red-100 text-red-900 border-red-300',
@@ -68,9 +71,17 @@ export default function OrderCard({ order, onStatusChange }) {
               </div>
             ))}
           </div>
-          <Button className="w-full" onClick={() => onStatusChange(order.id, null, 'ready')}>
-            MARK ENTIRE ORDER READY
-          </Button>
+          {order.status === 'ready' ? (
+            canComplete && (
+              <Button className="w-full" onClick={() => onCompleteOrder(order)}>
+                COMPLETE ORDER
+              </Button>
+            )
+          ) : (
+            <Button className="w-full" onClick={() => onStatusChange(order.id, null, 'ready')}>
+              MARK ENTIRE ORDER READY
+            </Button>
+          )}
         </div>
       )}
     </OrderTimer>

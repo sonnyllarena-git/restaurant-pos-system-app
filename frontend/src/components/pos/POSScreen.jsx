@@ -6,14 +6,15 @@ import TableSelector from './TableSelector';
 import MenuBrowser from './MenuBrowser';
 import CartSummary from './CartSummary';
 import ItemCustomization from './ItemCustomization';
+import OrderTypeModal from './OrderTypeModal';
+import ServiceTypeModal from './ServiceTypeModal';
+import { SERVICE_TYPES } from '../../utils/constants';
 
 export default function POSScreen() {
-  const { selectedTable, serviceType } = useOrder();
+  const { selectedTable, serviceType, orderType } = useOrder();
   const { addToCart } = useCart();
   const { showSuccess } = useContext(NotificationContext);
   const [customizingItem, setCustomizingItem] = useState(null);
-
-  const orderStarted = Boolean(selectedTable) || Boolean(serviceType);
 
   const handleSelectItem = (item) => {
     if (item.modifierGroups?.length > 0) {
@@ -30,7 +31,15 @@ export default function POSScreen() {
     setCustomizingItem(null);
   };
 
-  if (!orderStarted) {
+  if (!orderType) {
+    return <OrderTypeModal />;
+  }
+
+  if (!serviceType) {
+    return <ServiceTypeModal />;
+  }
+
+  if (serviceType === SERVICE_TYPES.DINE_IN && !selectedTable) {
     return <TableSelector />;
   }
 

@@ -35,7 +35,7 @@ export default function AdvanceOrderModal({ onClose }) {
   const { items, subtotal, tax, total, clearCart } = useCart();
   const { selectedTable, serviceType } = useOrder();
   const { confirm } = useContext(UIContext);
-  const { showSuccess, showError } = useContext(NotificationContext);
+  const { showSuccess, showError, showInfo } = useContext(NotificationContext);
   const { checkDuplicateOrder, checkRecentSubmission } = useDuplicateCheck();
 
   const [customerName, setCustomerName] = useState('');
@@ -89,7 +89,7 @@ export default function AdvanceOrderModal({ onClose }) {
     try {
       await saveOrder(buildOrderPayload());
       const allOrders = await getAllOrders();
-      exportOrdersToExcel(allOrders);
+      exportOrdersToExcel(allOrders, { onFallbackHint: showInfo });
       clearCart();
       showSuccess('Advance order created');
       onClose();

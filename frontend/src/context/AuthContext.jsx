@@ -27,11 +27,19 @@ export function AuthProvider({ children }) {
         return;
       }
       setTimeout(() => {
+        // No real auth backend here, so role is inferred from the mock username so
+        // QA can exercise role-gated UI without a schema/backend change.
+        const lowerUsername = username.toLowerCase();
+        let role = 'admin';
+        if (lowerUsername.includes('cashier')) role = 'cashier';
+        else if (lowerUsername.includes('kitchen')) role = 'kitchen';
+        else if (lowerUsername.includes('viewer')) role = 'viewer';
+
         const mockUser = {
           id: '1',
           username,
           fullName: 'John Doe',
-          role: 'admin',
+          role,
           loginTime: new Date().toISOString(),
         };
         setUser(mockUser);

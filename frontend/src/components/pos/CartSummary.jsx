@@ -10,7 +10,7 @@ import { formatCurrency } from '../../utils/formatters';
 
 export default function CartSummary() {
   const { items, updateQuantity, removeItem, clearCart, subtotal, tax, total } = useCart();
-  const { selectedTable, serviceType } = useOrder();
+  const { selectedTable, serviceType, orderType } = useOrder();
   const { confirm } = useContext(UIContext);
   const navigate = useNavigate();
   const [showAdvanceOrder, setShowAdvanceOrder] = useState(false);
@@ -25,7 +25,19 @@ export default function CartSummary() {
     });
   };
 
-  const orderLabel = selectedTable ? `Table ${selectedTable}` : serviceType === 'takeout' ? 'Takeout' : 'Delivery';
+  const handlePrimaryAction = () => {
+    if (orderType === 'advance') {
+      setShowAdvanceOrder(true);
+    } else {
+      navigate('/pos/payment');
+    }
+  };
+
+  const orderLabel = selectedTable
+    ? `Table ${selectedTable}`
+    : serviceType
+    ? serviceType.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    : '';
 
   return (
     <div className="flex flex-col h-full border-l border-slate-200 bg-white w-96 shrink-0">
@@ -56,22 +68,12 @@ export default function CartSummary() {
           <span className="text-orange-500">{formatCurrency(total)}</span>
         </div>
       </div>
-      <div className="px-4 pt-4">
-        <Button
-          variant="secondary"
-          className="w-full bg-blue-100 text-blue-900 border-blue-300 hover:bg-blue-200"
-          disabled={items.length === 0}
-          onClick={() => setShowAdvanceOrder(true)}
-        >
-          📅 Create Advance Order
-        </Button>
-      </div>
       <div className="p-4 flex gap-3">
         <Button variant="secondary" className="flex-1" disabled={items.length === 0} onClick={handleClear}>
           CLEAR
         </Button>
-        <Button className="flex-1" disabled={items.length === 0} onClick={() => navigate('/pos/payment')}>
-          CHECKOUT
+        <Button className="flex-1" disabled={items.length === 0} onClick={handlePrimaryAction}>
+          {orderType === 'advance' ? 'SUBMIT ADVANCE ORDER' : 'CHECKOUT'}
         </Button>
       </div>
       {showAdvanceOrder && <AdvanceOrderModal onClose={() => setShowAdvanceOrder(false)} />}
