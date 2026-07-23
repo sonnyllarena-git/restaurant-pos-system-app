@@ -14,7 +14,6 @@ import {
   updateOrderStatus,
   updateOrderServiceType,
 } from '../../services/dbService';
-import { exportOrdersToExcel } from '../../utils/excelExport';
 
 function deriveOrderStatus(items) {
   if (items.every((item) => item.status === 'ready')) return 'ready';
@@ -53,7 +52,7 @@ export default function KitchenDisplay() {
   const [completingOrder, setCompletingOrder] = useState(null);
   const [payingOrder, setPayingOrder] = useState(null);
   const [completing, setCompleting] = useState(false);
-  const { showSuccess, showError, showInfo } = useContext(NotificationContext);
+  const { showSuccess, showError } = useContext(NotificationContext);
 
   const loadOrders = useCallback(async () => {
     const allOrders = await getAllOrders();
@@ -103,8 +102,6 @@ export default function KitchenDisplay() {
     setCompleting(true);
     try {
       await updateOrderStatus(payingOrder.id, 'completed');
-      const allOrders = await getAllOrders();
-      exportOrdersToExcel(allOrders, { onFallbackHint: showInfo });
       setPayingOrder(null);
       await loadOrders();
       showSuccess('Order completed');

@@ -5,9 +5,10 @@ import { DEFAULT_TAX_RATE, CURRENCY } from '../utils/constants';
 export const SettingsContext = createContext();
 
 const defaultSettings = {
-  restaurantName: 'Batangas Grill House',
-  address: 'Poblacion, Batangas City, Batangas',
-  phone: '(043) 555-0192',
+  restaurantName: "Jayden's Grill & Restaurant",
+  establishedYear: 2022,
+  address: '',
+  phone: '',
   taxRate: DEFAULT_TAX_RATE,
   currency: CURRENCY,
   printer: {

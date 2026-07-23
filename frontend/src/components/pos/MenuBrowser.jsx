@@ -2,8 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import MenuItemCard from './MenuItemCard';
 import Loader from '../common/Loader';
 import { getMenuItems } from '../../services/dbService';
+import { MENU_CATEGORIES } from '../../utils/seedData';
 
-const CATEGORIES = ['Mains', 'Appetizers', 'Sides', 'Drinks', 'Desserts'];
+const CATEGORIES = MENU_CATEGORIES;
 
 export default function MenuBrowser({ onSelectItem }) {
   const [menuItems, setMenuItems] = useState(null);

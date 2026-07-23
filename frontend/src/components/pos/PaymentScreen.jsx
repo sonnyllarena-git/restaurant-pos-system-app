@@ -7,14 +7,13 @@ import PaymentCash from './PaymentCash';
 import OrderSuccess from './OrderSuccess';
 import Input from '../common/Input';
 import { generateId } from '../../utils/helpers';
-import { saveOrder, getAllOrders } from '../../services/dbService';
-import { exportOrdersToExcel } from '../../utils/excelExport';
+import { saveOrder } from '../../services/dbService';
 import { ORDER_TYPES } from '../../utils/constants';
 
 export default function PaymentScreen() {
   const { items, subtotal, tax, total, clearCart } = useCart();
   const { selectedTable, serviceType, resetOrder } = useOrder();
-  const { showError, showInfo } = useContext(NotificationContext);
+  const { showError } = useContext(NotificationContext);
   const navigate = useNavigate();
   const [completedOrder, setCompletedOrder] = useState(null);
   const [customerName, setCustomerName] = useState('');
@@ -66,9 +65,6 @@ export default function PaymentScreen() {
         status: 'completed',
         completedAt: new Date().toISOString(),
       });
-
-      const allOrders = await getAllOrders();
-      exportOrdersToExcel(allOrders, { onFallbackHint: showInfo });
 
       setCompletedOrder({
         id: savedOrder.id,

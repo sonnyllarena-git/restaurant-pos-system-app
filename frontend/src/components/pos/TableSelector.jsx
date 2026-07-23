@@ -21,7 +21,7 @@ const statusStyles = {
 };
 
 export default function TableSelector() {
-  const { setSelectedTable } = useOrder();
+  const { setSelectedTable, setServiceType } = useOrder();
   const [tables] = useState(MOCK_TABLES);
 
   const handleSelectTable = (table) => {
@@ -46,6 +46,13 @@ export default function TableSelector() {
           </button>
         ))}
       </div>
+
+      <button
+        onClick={() => setServiceType(null)}
+        className="text-sm text-slate-500 hover:text-slate-700 mt-8 underline"
+      >
+        ← Back
+      </button>
     </div>
   );
 }

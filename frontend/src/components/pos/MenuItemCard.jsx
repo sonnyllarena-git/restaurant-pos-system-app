@@ -6,7 +6,10 @@ export default function MenuItemCard({ item, onSelect }) {
   return (
     <Card hoverable onClick={() => onSelect(item)} className="flex flex-col justify-between h-full">
       <div>
-        <h4 className="text-base font-semibold text-slate-900">{item.name}</h4>
+        <div className="flex items-center gap-2">
+          {item.icon && <span className="text-xl leading-none">{item.icon}</span>}
+          <h4 className="text-base font-semibold text-slate-900">{item.name}</h4>
+        </div>
         <p className="text-xs text-slate-500 mt-1 line-clamp-2">{item.description}</p>
       </div>
       <div className="flex items-center justify-between mt-3">

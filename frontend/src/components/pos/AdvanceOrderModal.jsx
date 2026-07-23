@@ -8,8 +8,7 @@ import { useOrder } from '../../hooks/useOrder';
 import { useDuplicateCheck } from '../../hooks/useDuplicateCheck';
 import { UIContext } from '../../context/UIContext';
 import { NotificationContext } from '../../context/NotificationContext';
-import { saveOrder, getAllOrders } from '../../services/dbService';
-import { exportOrdersToExcel } from '../../utils/excelExport';
+import { saveOrder } from '../../services/dbService';
 import { formatCurrency } from '../../utils/formatters';
 import { ORDER_TYPES, ORDER_SOURCES } from '../../utils/constants';
 
@@ -35,7 +34,7 @@ export default function AdvanceOrderModal({ onClose }) {
   const { items, subtotal, tax, total, clearCart } = useCart();
   const { selectedTable, serviceType } = useOrder();
   const { confirm } = useContext(UIContext);
-  const { showSuccess, showError, showInfo } = useContext(NotificationContext);
+  const { showSuccess, showError } = useContext(NotificationContext);
   const { checkDuplicateOrder, checkRecentSubmission } = useDuplicateCheck();
 
   const [customerName, setCustomerName] = useState('');
@@ -88,8 +87,6 @@ export default function AdvanceOrderModal({ onClose }) {
     setSaving(true);
     try {
       await saveOrder(buildOrderPayload());
-      const allOrders = await getAllOrders();
-      exportOrdersToExcel(allOrders, { onFallbackHint: showInfo });
       clearCart();
       showSuccess('Advance order created');
       onClose();
