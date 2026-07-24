@@ -25,8 +25,8 @@ export default function HomePage() {
       <Header />
       <div className="relative flex-1 flex flex-col">
         <div
-          className="absolute inset-0 opacity-10 pointer-events-none bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/logo.png)', backgroundSize: '500px' }}
+          className="absolute inset-0 opacity-25 pointer-events-none bg-center bg-no-repeat"
+          style={{ backgroundImage: 'url(/logo.png)', backgroundSize: '600px 600px' }}
           aria-hidden="true"
         />
         <div className="relative flex-1 flex flex-col items-center justify-center px-6 py-12">

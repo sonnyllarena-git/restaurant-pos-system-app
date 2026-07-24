@@ -14,10 +14,11 @@ const DB_NAME = 'pos_system';
 // browser that already opened the DB at v1 (e.g. any existing dev/test profile) will
 // silently keep only the v1 stores forever if this isn't bumped, and every call
 // against a newer store (e.g. `tables`) will throw.
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const ORDERS_STORE = 'orders';
 const MENU_ITEMS_STORE = 'menu_items';
 const TABLES_STORE = 'tables';
+const PRICE_HISTORY_STORE = 'price_history';
 
 let dbPromise = null;
 
@@ -35,6 +36,9 @@ function openDb() {
       }
       if (!db.objectStoreNames.contains(TABLES_STORE)) {
         db.createObjectStore(TABLES_STORE, { keyPath: 'number' });
+      }
+      if (!db.objectStoreNames.contains(PRICE_HISTORY_STORE)) {
+        db.createObjectStore(PRICE_HISTORY_STORE, { keyPath: 'id' });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -197,6 +201,67 @@ export async function seedMenuItemsIfEmpty(seedArray) {
     seedArray.forEach((item) => store.put(item));
   });
   return getMenuItems();
+}
+
+export async function getMenuItemById(itemId) {
+  return withStore(MENU_ITEMS_STORE, 'readonly', (store) => requestToPromise(store.get(itemId))).then(
+    (r) => r || null
+  );
+}
+
+export async function addMenuItem(itemData) {
+  const item = {
+    id: generateId(),
+    name: itemData.name,
+    category: itemData.category,
+    price: itemData.price,
+    description: itemData.description || '',
+    icon: itemData.icon || '🍽️',
+  };
+  await withStore(MENU_ITEMS_STORE, 'readwrite', (store) => store.put(item));
+  return item;
+}
+
+export async function deleteMenuItem(itemId) {
+  await withStore(MENU_ITEMS_STORE, 'readwrite', (store) => store.delete(itemId));
+}
+
+export async function isMenuItemUsedInOrders(itemName) {
+  const orders = await getAllOrders();
+  return orders.some((order) => (order.items || []).some((item) => item.name === itemName));
+}
+
+export async function updateMenuItemPrice(itemId, newPrice, changedBy) {
+  const item = await getMenuItemById(itemId);
+  if (!item) return null;
+  const oldPrice = item.price;
+  const updatedItem = { ...item, price: newPrice };
+  await withStore(MENU_ITEMS_STORE, 'readwrite', (store) => store.put(updatedItem));
+
+  const historyEntry = {
+    id: generateId(),
+    itemId,
+    oldPrice,
+    newPrice,
+    changedAt: new Date().toISOString(),
+    changedBy: changedBy || null,
+  };
+  await withStore(PRICE_HISTORY_STORE, 'readwrite', (store) => store.put(historyEntry));
+
+  return updatedItem;
+}
+
+export async function getPriceHistory(itemId) {
+  const all = await getAll(PRICE_HISTORY_STORE);
+  return (all || [])
+    .filter((entry) => entry.itemId === itemId)
+    .sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
+}
+
+export async function getLastPriceUpdateTime() {
+  const all = await getAll(PRICE_HISTORY_STORE);
+  if (!all || all.length === 0) return null;
+  return all.reduce((latest, entry) => (entry.changedAt > latest ? entry.changedAt : latest), all[0].changedAt);
 }
 
 function currentTaxRate() {

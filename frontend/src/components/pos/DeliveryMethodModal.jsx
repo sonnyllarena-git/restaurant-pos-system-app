@@ -5,21 +5,28 @@ import { DELIVERY_COMPANIES } from '../../utils/deliveryData';
 
 export default function DeliveryMethodModal() {
   const { deliveryMethod, deliveryCompany, setDeliveryMethod, setDeliveryCompany } = useOrder();
-  const [showCompanyPicker, setShowCompanyPicker] = useState(deliveryMethod === 'company');
+  // Card highlighting is driven by this local UI choice, not the committed OrderContext
+  // value -- deliveryMethod only becomes 'company' once an actual company is picked
+  // (so the wizard's Next button stays blocked until then), but the two cards must
+  // still be visually mutually exclusive the instant either is clicked.
+  const [selectedMethod, setSelectedMethod] = useState(deliveryMethod || null);
   const [companyId, setCompanyId] = useState(
     () => DELIVERY_COMPANIES.find((c) => c.name === deliveryCompany)?.id || ''
   );
 
   const handleSelectWalkIn = () => {
+    setSelectedMethod('walk_in');
     setDeliveryCompany(null);
     setDeliveryMethod('walk_in');
-    setShowCompanyPicker(false);
   };
 
-  // Only reveals the company dropdown -- deliveryMethod isn't committed to 'company'
-  // in OrderContext until an actual company is chosen below, so the wizard's Next
-  // button correctly stays blocked until a real company is picked, not just this card.
-  const handleShowCompanyPicker = () => setShowCompanyPicker(true);
+  const handleShowCompanyPicker = () => {
+    setSelectedMethod('company');
+    if (deliveryMethod === 'walk_in') {
+      setDeliveryMethod(null);
+      setDeliveryCompany(null);
+    }
+  };
 
   const handleSelectCompany = (id) => {
     setCompanyId(id);
@@ -41,18 +48,18 @@ export default function DeliveryMethodModal() {
         <SelectableCard
           icon="🚶"
           label="Walk-in Customer"
-          isSelected={deliveryMethod === 'walk_in'}
+          isSelected={selectedMethod === 'walk_in'}
           onClick={handleSelectWalkIn}
         />
         <SelectableCard
           icon="🚚"
           label="Company Delivery"
-          isSelected={deliveryMethod === 'company'}
+          isSelected={selectedMethod === 'company'}
           onClick={handleShowCompanyPicker}
         />
       </div>
 
-      {showCompanyPicker && (
+      {selectedMethod === 'company' && (
         <div className="w-full max-w-xl mt-6 border border-slate-300 rounded p-4 bg-slate-50">
           <label className="block text-sm font-medium text-slate-700 mb-2">Delivery Company</label>
           <select
