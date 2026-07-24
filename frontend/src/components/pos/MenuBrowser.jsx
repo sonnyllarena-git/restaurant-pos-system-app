@@ -3,6 +3,7 @@ import MenuItemCard from './MenuItemCard';
 import Loader from '../common/Loader';
 import { getMenuItems } from '../../services/dbService';
 import { MENU_CATEGORIES } from '../../utils/seedData';
+import { matchesMenuSearch } from '../../utils/menuSearch';
 
 const CATEGORIES = MENU_CATEGORIES;
 
@@ -15,13 +16,23 @@ export default function MenuBrowser({ onSelectItem }) {
     getMenuItems().then(setMenuItems);
   }, []);
 
+  // While searching, matches come from every category, not just the active tab --
+  // the tab then jumps to reflect where the first match actually lives so it never
+  // looks like results are missing.
+  useEffect(() => {
+    const term = search.trim();
+    if (!term || !menuItems) return;
+    const firstMatch = menuItems.find((item) => matchesMenuSearch(item, term));
+    if (firstMatch) setActiveCategory(firstMatch.category);
+  }, [search, menuItems]);
+
   const filteredItems = useMemo(() => {
     if (!menuItems) return [];
-    return menuItems.filter((item) => {
-      const matchesCategory = item.category === activeCategory;
-      const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
+    const term = search.trim();
+    if (!term) {
+      return menuItems.filter((item) => item.category === activeCategory);
+    }
+    return menuItems.filter((item) => matchesMenuSearch(item, term));
   }, [menuItems, activeCategory, search]);
 
   return (
@@ -54,12 +65,12 @@ export default function MenuBrowser({ onSelectItem }) {
         {menuItems === null ? (
           <Loader label="Loading menu..." />
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div>
             {filteredItems.map((item) => (
               <MenuItemCard key={item.id} item={item} onSelect={onSelectItem} />
             ))}
             {filteredItems.length === 0 && (
-              <p className="text-sm text-slate-500 col-span-full text-center py-8">No items found.</p>
+              <p className="text-sm text-slate-500 text-center py-8">No items found.</p>
             )}
           </div>
         )}

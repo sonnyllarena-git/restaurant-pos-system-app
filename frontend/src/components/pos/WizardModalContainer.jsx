@@ -76,6 +76,7 @@ export default function WizardModalContainer({ orderType, onClose }) {
 
   const [stepIndex, setStepIndex] = useState(0);
   const [customizingItem, setCustomizingItem] = useState(null);
+  const [customizingQuantity, setCustomizingQuantity] = useState(1);
 
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -124,11 +125,12 @@ export default function WizardModalContainer({ orderType, onClose }) {
     setServiceType(type);
   };
 
-  const handleSelectItem = (item) => {
+  const handleSelectItem = (item, quantity = 1) => {
     if (item.modifierGroups?.length > 0) {
       setCustomizingItem(item);
+      setCustomizingQuantity(quantity);
     } else {
-      addToCart(item, 1, [], '');
+      addToCart(item, quantity, [], '');
       showSuccess(`${item.name} added to cart`);
     }
   };
@@ -440,6 +442,7 @@ export default function WizardModalContainer({ orderType, onClose }) {
             {customizingItem && (
               <ItemCustomization
                 item={customizingItem}
+                initialQuantity={customizingQuantity}
                 onConfirm={handleConfirmCustomization}
                 onClose={() => setCustomizingItem(null)}
               />

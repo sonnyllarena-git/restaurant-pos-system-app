@@ -3,8 +3,8 @@ import Modal from '../common/Modal';
 import Button from '../common/Button';
 import { formatCurrency } from '../../utils/formatters';
 
-export default function ItemCustomization({ item, onConfirm, onClose }) {
-  const [quantity, setQuantity] = useState(1);
+export default function ItemCustomization({ item, initialQuantity = 1, onConfirm, onClose }) {
+  const [quantity, setQuantity] = useState(initialQuantity);
   const [selections, setSelections] = useState({});
   const [notes, setNotes] = useState('');
 

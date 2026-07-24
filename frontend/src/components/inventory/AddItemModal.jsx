@@ -4,7 +4,7 @@ import Button from '../common/Button';
 import Input from '../common/Input';
 import { MENU_CATEGORIES } from '../../utils/seedData';
 
-export default function AddItemModal({ onAdd, onClose }) {
+export default function AddItemModal({ onAdd, onClose, existingItems }) {
   const [name, setName] = useState('');
   const [category, setCategory] = useState(MENU_CATEGORIES[0]);
   const [price, setPrice] = useState('');
@@ -12,12 +12,19 @@ export default function AddItemModal({ onAdd, onClose }) {
 
   const handleAdd = () => {
     const fieldErrors = {};
-    if (!name.trim()) fieldErrors.name = 'Item name is required';
+    const trimmedName = name.trim();
+    if (!trimmedName) fieldErrors.name = 'Item name is required';
     if (!price || Number(price) <= 0) fieldErrors.price = 'Enter a valid price';
+
+    const isDuplicate = (existingItems || []).some(
+      (i) => i.name.trim().toLowerCase() === trimmedName.toLowerCase()
+    );
+    if (isDuplicate) fieldErrors.name = 'An item with this name already exists';
+
     setErrors(fieldErrors);
     if (Object.keys(fieldErrors).length > 0) return;
 
-    onAdd({ name: name.trim(), category, price: Number(price) });
+    onAdd({ name: trimmedName, category, price: Number(price) });
   };
 
   return (

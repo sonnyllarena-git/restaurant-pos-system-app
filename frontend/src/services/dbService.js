@@ -210,6 +210,7 @@ export async function getMenuItemById(itemId) {
 }
 
 export async function addMenuItem(itemData) {
+  const now = new Date().toISOString();
   const item = {
     id: generateId(),
     name: itemData.name,
@@ -217,6 +218,12 @@ export async function addMenuItem(itemData) {
     price: itemData.price,
     description: itemData.description || '',
     icon: itemData.icon || '🍽️',
+    // Uploaded images are stored as base64 data URLs on the item record itself,
+    // not written to a /public/menu-images/ folder -- a browser app has no
+    // filesystem/Electron process available to save real files to.
+    imageDataUrl: itemData.imageDataUrl || null,
+    createdAt: now,
+    updatedAt: now,
   };
   await withStore(MENU_ITEMS_STORE, 'readwrite', (store) => store.put(item));
   return item;
@@ -247,6 +254,32 @@ export async function updateMenuItemPrice(itemId, newPrice, changedBy) {
     changedBy: changedBy || null,
   };
   await withStore(PRICE_HISTORY_STORE, 'readwrite', (store) => store.put(historyEntry));
+
+  return updatedItem;
+}
+
+const EDITABLE_MENU_ITEM_FIELDS = ['name', 'category', 'imageDataUrl', 'description'];
+
+export async function updateMenuItem(itemId, changes, changedBy) {
+  const item = await getMenuItemById(itemId);
+  if (!item) return null;
+
+  const now = new Date().toISOString();
+  const fieldChanges = {};
+  EDITABLE_MENU_ITEM_FIELDS.forEach((field) => {
+    if (changes[field] !== undefined) fieldChanges[field] = changes[field];
+  });
+
+  let updatedItem = { ...item, ...fieldChanges, updatedAt: now };
+  await withStore(MENU_ITEMS_STORE, 'readwrite', (store) => store.put(updatedItem));
+
+  // Editing name/category/image must never create a price_history entry -- only
+  // route through updateMenuItemPrice (which always logs) when price actually changed.
+  if (changes.price !== undefined && changes.price !== item.price) {
+    updatedItem = await updateMenuItemPrice(itemId, changes.price, changedBy);
+    updatedItem = { ...updatedItem, updatedAt: now };
+    await withStore(MENU_ITEMS_STORE, 'readwrite', (store) => store.put(updatedItem));
+  }
 
   return updatedItem;
 }
