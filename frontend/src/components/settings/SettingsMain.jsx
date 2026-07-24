@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import RestaurantInfo from './RestaurantInfo';
 import PrinterConfig from './PrinterConfig';
-import TaxSettings from './TaxSettings';
 import BackupSettings from './BackupSettings';
 import UserManagement from './UserManagement';
 import DatabaseSettings from './DatabaseSettings';
@@ -9,7 +8,6 @@ import DatabaseSettings from './DatabaseSettings';
 const SECTIONS = [
   { key: 'restaurant', label: 'Restaurant Info', component: RestaurantInfo },
   { key: 'printer', label: 'Printer', component: PrinterConfig },
-  { key: 'tax', label: 'Tax', component: TaxSettings },
   { key: 'backup', label: 'Backup', component: BackupSettings },
   { key: 'users', label: 'Users', component: UserManagement },
   { key: 'database', label: 'Database', component: DatabaseSettings },

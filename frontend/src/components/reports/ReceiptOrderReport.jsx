@@ -42,12 +42,6 @@ export default function ReceiptOrderReport({ order }) {
 
       <div className="flex flex-wrap justify-end gap-6 text-sm border-t border-slate-100 pt-3">
         <span className="text-slate-600">
-          Subtotal <span className="text-slate-900 font-medium">{formatCurrency(order.subtotal)}</span>
-        </span>
-        <span className="text-slate-600">
-          Tax <span className="text-slate-900 font-medium">{formatCurrency(order.tax)}</span>
-        </span>
-        <span className="text-slate-600">
           Total <span className="text-slate-900 font-bold">{formatCurrency(order.total)}</span>
         </span>
       </div>

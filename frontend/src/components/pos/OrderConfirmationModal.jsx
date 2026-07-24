@@ -17,8 +17,6 @@ export default function OrderConfirmationModal({
   customerName,
   customerPhone,
   items,
-  subtotal,
-  tax,
   total,
   orderDate,
   orderTime,
@@ -102,16 +100,8 @@ export default function OrderConfirmationModal({
           </ul>
         </div>
 
-        <div className="border-t border-slate-200 pt-3 space-y-1">
-          <div className="flex justify-between text-sm text-slate-600">
-            <span>Subtotal</span>
-            <span>{formatCurrency(subtotal)}</span>
-          </div>
-          <div className="flex justify-between text-sm text-slate-600">
-            <span>Tax</span>
-            <span>{formatCurrency(tax)}</span>
-          </div>
-          <div className="flex justify-between text-base font-bold text-slate-900 pt-1 border-t border-slate-200">
+        <div className="border-t border-slate-200 pt-3">
+          <div className="flex justify-between text-base font-bold text-slate-900">
             <span>Total</span>
             <span className="text-orange-500">{formatCurrency(total)}</span>
           </div>

@@ -26,14 +26,6 @@ export default function ReceiptPreview({ order }) {
         </div>
       ))}
       <div className="border-t border-dashed border-slate-400 my-2" />
-      <div className="flex justify-between">
-        <span>Subtotal</span>
-        <span>{formatCurrency(order.subtotal)}</span>
-      </div>
-      <div className="flex justify-between">
-        <span>Tax</span>
-        <span>{formatCurrency(order.tax)}</span>
-      </div>
       <div className="flex justify-between font-bold text-sm">
         <span>Total</span>
         <span>{formatCurrency(order.total)}</span>
