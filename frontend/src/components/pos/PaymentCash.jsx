@@ -2,14 +2,21 @@ import React, { useState, useEffect } from 'react';
 import Button from '../common/Button';
 import Input from '../common/Input';
 
-export default function PaymentCash({ amountDue, onConfirm, onCancel, loading = false }) {
+export default function PaymentCash({ amountDue, onConfirm, onCancel, loading = false, onChange, showActions = true }) {
   const [cashReceived, setCashReceived] = useState('');
   const [change, setChange] = useState(0);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const amount = parseFloat(cashReceived) || 0;
-    setChange(Math.max(0, amount - amountDue));
+    const nextChange = Math.max(0, amount - amountDue);
+    setChange(nextChange);
+    onChange?.({
+      raw: cashReceived,
+      amountReceived: amount,
+      change: nextChange,
+      isValid: parseFloat(cashReceived) >= amountDue && amountDue > 0,
+    });
   }, [cashReceived, amountDue]);
 
   const handleCashInput = (e) => {
@@ -63,14 +70,16 @@ export default function PaymentCash({ amountDue, onConfirm, onCancel, loading = 
           ₱{change.toFixed(2)}
         </div>
       </div>
-      <div className="flex gap-3">
-        <Button variant="secondary" className="flex-1" onClick={onCancel} disabled={loading}>
-          CANCEL
-        </Button>
-        <Button className="flex-1" disabled={!isValidPayment || loading} loading={loading} onClick={handleConfirm}>
-          CONFIRM PAYMENT
-        </Button>
-      </div>
+      {showActions && (
+        <div className="flex gap-3">
+          <Button variant="secondary" className="flex-1" onClick={onCancel} disabled={loading}>
+            CANCEL
+          </Button>
+          <Button className="flex-1" disabled={!isValidPayment || loading} loading={loading} onClick={handleConfirm}>
+            CONFIRM PAYMENT
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

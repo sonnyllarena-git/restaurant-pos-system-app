@@ -1,56 +1,49 @@
 import React from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
+import Card from '../components/common/Card';
+import WizardModalContainer from '../components/pos/WizardModalContainer';
 import { useOrder } from '../hooks/useOrder';
-import { SERVICE_TYPES } from '../utils/constants';
+import { useCart } from '../hooks/useCart';
+import { ORDER_TYPES } from '../utils/constants';
+
+const ORDER_TYPE_OPTIONS = [
+  { type: ORDER_TYPES.REGULAR, icon: '🛒', label: 'Regular Order', desc: 'Walk-in order served now.' },
+  { type: ORDER_TYPES.ADVANCE, icon: '📅', label: 'Advance Order', desc: 'Scheduled for a future date/time.' },
+];
 
 export default function POSPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const {
-    orderType,
-    setOrderType,
-    serviceType,
-    setServiceType,
-    selectedTable,
-    setSelectedTable,
-    deliveryMethod,
-    setDeliveryMethod,
-  } = useOrder();
+  const { orderType, setOrderType, resetOrder } = useOrder();
+  const { clearCart } = useCart();
 
-  // The order-taking wizard (order type -> service type -> table -> menu/cart) is all
-  // state on a single /pos route, not separate history entries, so browser-history
-  // back would skip over every step straight to whatever page preceded /pos. Step back
-  // through the wizard state instead; /pos/payment is a real nested route, so its
-  // default history-back (to /pos) is already correct and left alone.
-  const isPaymentStep = location.pathname === '/pos/payment';
-
-  const handleBack = isPaymentStep
-    ? undefined
-    : () => {
-        if (!orderType) {
-          navigate('/home');
-        } else if (!serviceType) {
-          setOrderType(null);
-        } else if (serviceType === SERVICE_TYPES.DINE_IN && !selectedTable) {
-          setServiceType(null);
-        } else if (serviceType === SERVICE_TYPES.DINE_IN) {
-          setSelectedTable(null);
-        } else if (serviceType === SERVICE_TYPES.DELIVERY && !deliveryMethod) {
-          setServiceType(null);
-        } else if (serviceType === SERVICE_TYPES.DELIVERY) {
-          setDeliveryMethod(null);
-        } else {
-          setServiceType(null);
-        }
-      };
+  const handleWizardClose = () => {
+    resetOrder();
+    clearCart();
+  };
 
   return (
     <div className="h-full flex flex-col">
-      <PageHeader title="Point of Sale" onBack={handleBack} />
-      <div className="flex-1 min-h-0">
-        <Outlet />
+      <PageHeader title="Point of Sale" />
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center p-8">
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">New Order</h2>
+        <p className="text-sm text-slate-600 mb-8">What kind of order is this?</p>
+
+        <div className="grid grid-cols-2 gap-6 w-full max-w-xl">
+          {ORDER_TYPE_OPTIONS.map((opt) => (
+            <Card
+              key={opt.type}
+              hoverable
+              onClick={() => setOrderType(opt.type)}
+              className="text-center py-8 border-2 hover:border-orange-500 transition-colors"
+            >
+              <div className="text-4xl mb-3">{opt.icon}</div>
+              <h3 className="text-lg font-semibold text-slate-900">{opt.label}</h3>
+              <p className="text-sm text-slate-600 mt-1">{opt.desc}</p>
+            </Card>
+          ))}
+        </div>
       </div>
+
+      {orderType && <WizardModalContainer orderType={orderType} onClose={handleWizardClose} />}
     </div>
   );
 }

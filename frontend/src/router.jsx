@@ -15,9 +15,6 @@ import OrderHistoryPage from './pages/OrderHistoryPage';
 import NotFoundPage from './pages/NotFoundPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 
-import POSScreen from './components/pos/POSScreen';
-import PaymentScreen from './components/pos/PaymentScreen';
-
 export default function AppRouter() {
   return (
     <Routes>
@@ -47,10 +44,7 @@ export default function AppRouter() {
               <POSPage />
             </ProtectedRoute>
           }
-        >
-          <Route index element={<POSScreen />} />
-          <Route path="payment" element={<PaymentScreen />} />
-        </Route>
+        />
 
         <Route
           path="/kitchen"

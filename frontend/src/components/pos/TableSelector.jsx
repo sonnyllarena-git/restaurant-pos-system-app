@@ -10,7 +10,7 @@ const statusStyles = {
 };
 
 export default function TableSelector() {
-  const { setSelectedTable, setServiceType } = useOrder();
+  const { selectedTable, setSelectedTable } = useOrder();
   const [tables, setTables] = useState(null);
 
   useEffect(() => {
@@ -40,8 +40,7 @@ export default function TableSelector() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full p-8">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">Select a Table</h2>
+    <div className="flex flex-col items-center">
       <p className="text-sm text-slate-600 mb-6">Choose an available table.</p>
 
       {tables === null ? (
@@ -50,28 +49,29 @@ export default function TableSelector() {
         <div className="grid grid-cols-3 gap-4">
           {tables.map((table) => {
             const occupied = table.status === TABLE_STATUSES.OCCUPIED;
+            const isSelected = table.number === selectedTable;
             return (
               <button
                 key={table.number}
                 onClick={() => handleSelectTable(table)}
                 disabled={occupied}
                 title={occupied ? `Occupied by order${table.orderNumbers.length > 1 ? 's' : ''} #${table.orderNumbers.join(', #')}` : ''}
-                className={`h-24 w-24 border-2 rounded flex flex-col items-center justify-center font-semibold transition-colors ${statusStyles[table.status]}`}
+                className={`relative h-24 w-24 border-2 rounded flex flex-col items-center justify-center font-semibold transition-colors ${statusStyles[table.status]} ${
+                  isSelected ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-500' : ''
+                }`}
               >
                 <span className="text-lg">T{table.number}</span>
                 <span className="text-xs capitalize">{table.status}</span>
+                {isSelected && (
+                  <span className="absolute -top-2 -right-2 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                    ✓
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
       )}
-
-      <button
-        onClick={() => setServiceType(null)}
-        className="text-sm text-slate-500 hover:text-slate-700 mt-8 underline"
-      >
-        ← Back
-      </button>
     </div>
   );
 }
