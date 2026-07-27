@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { SettingsContext } from '../../context/SettingsContext';
 import { NotificationContext } from '../../context/NotificationContext';
 import { UIContext } from '../../context/UIContext';
+import { clearAllOrders } from '../../services/dbService';
 import Button from '../common/Button';
 
 export default function DatabaseSettings() {
@@ -22,6 +23,19 @@ export default function DatabaseSettings() {
     });
   };
 
+  const handleClearTransactions = () => {
+    confirm({
+      title: 'Clear Transactions',
+      message: 'This will permanently delete all orders and reset every table to available. Menu items and pricing are not affected.',
+      confirmLabel: 'CLEAR TRANSACTIONS',
+      danger: true,
+      onConfirm: async () => {
+        await clearAllOrders();
+        showSuccess('Transactions cleared');
+      },
+    });
+  };
+
   return (
     <div className="space-y-4 max-w-md">
       <h3 className="text-xl font-semibold tracking-tight text-slate-900 mb-2">Database</h3>
@@ -37,6 +51,9 @@ export default function DatabaseSettings() {
           backend integration.
         </p>
       </div>
+      <Button variant="danger" onClick={handleClearTransactions}>
+        CLEAR TRANSACTIONS
+      </Button>
       <Button variant="danger" onClick={handleClearLocalData}>
         CLEAR LOCAL DATA
       </Button>

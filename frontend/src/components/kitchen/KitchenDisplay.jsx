@@ -8,12 +8,14 @@ import Loader from '../common/Loader';
 import PageHeader from '../common/PageHeader';
 import Modal from '../common/Modal';
 import PaymentCash from '../pos/PaymentCash';
+import PrintPreviewModal from '../common/PrintPreviewModal';
 import { NotificationContext } from '../../context/NotificationContext';
 import {
   getAllOrders,
   updateOrderItemStatus,
   updateOrderStatus,
   updateOrderServiceType,
+  recordOrderPayment,
 } from '../../services/dbService';
 
 const TABS = [
@@ -59,6 +61,7 @@ export default function KitchenDisplay() {
   const [completingOrder, setCompletingOrder] = useState(null);
   const [payingOrder, setPayingOrder] = useState(null);
   const [completing, setCompleting] = useState(false);
+  const [receiptOrder, setReceiptOrder] = useState(null);
   const { showSuccess, showError } = useContext(NotificationContext);
 
   const loadOrders = useCallback(async () => {
@@ -122,13 +125,14 @@ export default function KitchenDisplay() {
     await loadOrders();
   };
 
-  const handleCompletePayment = async (_payment) => {
+  const handleCompletePayment = async (payment) => {
     setCompleting(true);
     try {
-      await updateOrderStatus(payingOrder.id, 'completed');
+      const updatedOrder = await recordOrderPayment(payingOrder.id, payment);
       setPayingOrder(null);
       await loadOrders();
       showSuccess('Order completed');
+      setReceiptOrder(updatedOrder);
     } catch (err) {
       showError('Failed to complete order');
     } finally {
@@ -200,6 +204,8 @@ export default function KitchenDisplay() {
           />
         </Modal>
       )}
+
+      {receiptOrder && <PrintPreviewModal order={receiptOrder} onClose={() => setReceiptOrder(null)} />}
     </div>
   );
 }

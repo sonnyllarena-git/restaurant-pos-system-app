@@ -3,11 +3,20 @@ import StatCard from './StatCard';
 import RevenueChart from './RevenueChart';
 import OrdersByHourChart from './OrdersByHourChart';
 import TopItemsChart from './TopItemsChart';
+import AdvanceSourceChart from './AdvanceSourceChart';
+import DeliveryCompanyChart from './DeliveryCompanyChart';
 import HourlyBreakdown from './HourlyBreakdown';
 import ReceiptOrderReport from './ReceiptOrderReport';
 import Loader from '../common/Loader';
 import Button from '../common/Button';
-import { getOrderStats, getHourlyBreakdown, getTopItems } from '../../services/reportService';
+import {
+  getOrderStats,
+  getHourlyBreakdown,
+  getTopItems,
+  getOrderTypeBreakdown,
+  getAdvanceSourceBreakdown,
+  getDeliveryCompanyBreakdown,
+} from '../../services/reportService';
 import { formatCurrency } from '../../utils/formatters';
 
 const PAGE_SIZE = 5;
@@ -18,6 +27,9 @@ export default function DashboardTab({ orders, loading }) {
   const stats = useMemo(() => getOrderStats(orders), [orders]);
   const hourly = useMemo(() => getHourlyBreakdown(orders), [orders]);
   const topItems = useMemo(() => getTopItems(orders, 5), [orders]);
+  const typeBreakdown = useMemo(() => getOrderTypeBreakdown(orders), [orders]);
+  const advanceSources = useMemo(() => getAdvanceSourceBreakdown(orders), [orders]);
+  const deliveryBreakdown = useMemo(() => getDeliveryCompanyBreakdown(orders), [orders]);
 
   const completedOrders = useMemo(
     () =>
@@ -40,9 +52,20 @@ export default function DashboardTab({ orders, loading }) {
         <StatCard title="Guests" value={stats.guests} icon="👥" />
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <StatCard title="Regular Orders" value={typeBreakdown.regular} icon="🛒" />
+        <StatCard title="Advance Orders" value={typeBreakdown.advance} icon="📅" />
+        <StatCard title="Company Deliveries" value={deliveryBreakdown.total} icon="🚚" />
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
         <RevenueChart data={hourly} />
         <OrdersByHourChart data={hourly} />
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
+        <AdvanceSourceChart data={advanceSources} />
+        <DeliveryCompanyChart data={deliveryBreakdown.byCompany} />
       </div>
 
       <div className="mb-6">

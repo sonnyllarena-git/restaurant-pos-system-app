@@ -1,4 +1,14 @@
+import { ORDER_SOURCES } from '../utils/constants';
+
 const BUSINESS_HOURS = { start: 11, end: 20 };
+
+const ADVANCE_SOURCE_LABELS = {
+  [ORDER_SOURCES.PHONE]: 'Phone Call',
+  [ORDER_SOURCES.SMS]: 'SMS',
+  [ORDER_SOURCES.FACEBOOK]: 'Facebook',
+  [ORDER_SOURCES.WHATSAPP]: 'WhatsApp',
+  [ORDER_SOURCES.WALK_IN]: 'Walk-in',
+};
 
 function formatHourLabel(hour) {
   const period = hour < 12 ? 'AM' : 'PM';
@@ -69,6 +79,35 @@ export function getHourlyBreakdown(orders, { startHour = BUSINESS_HOURS.start, e
         .slice(0, 3);
       return bucket;
     });
+}
+
+export function getOrderTypeBreakdown(orders) {
+  const advance = orders.filter((o) => o.orderType === 'advance').length;
+  return { regular: orders.length - advance, advance };
+}
+
+export function getAdvanceSourceBreakdown(orders) {
+  const advanceOrders = orders.filter((o) => o.orderType === 'advance');
+  return Object.entries(ADVANCE_SOURCE_LABELS).map(([source, label]) => ({
+    source,
+    label,
+    count: advanceOrders.filter((o) => o.orderSource === source).length,
+  }));
+}
+
+export function getDeliveryCompanyBreakdown(orders) {
+  const companyOrders = orders.filter((o) => o.deliveryMethod === 'company');
+  const counts = {};
+  companyOrders.forEach((o) => {
+    const name = o.deliveryCompany || 'Unspecified';
+    counts[name] = (counts[name] || 0) + 1;
+  });
+  return {
+    total: companyOrders.length,
+    byCompany: Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count),
+  };
 }
 
 export function getOrderDurationMinutes(order) {

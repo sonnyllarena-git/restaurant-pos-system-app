@@ -141,6 +141,21 @@ export async function updateOrderStatus(orderId, status) {
   return updated;
 }
 
+export async function recordOrderPayment(orderId, { amountReceived, change, paymentMethod }) {
+  const order = await getOrderById(orderId);
+  if (!order) return null;
+  const updated = {
+    ...order,
+    amountReceived: amountReceived ?? order.amountReceived,
+    change: change ?? order.change,
+    paymentMethod: paymentMethod || order.paymentMethod,
+    status: 'completed',
+    completedAt: new Date().toISOString(),
+  };
+  await withStore(ORDERS_STORE, 'readwrite', (store) => store.put(updated));
+  return updated;
+}
+
 export async function cancelOrder(orderId, reason, cancelledBy) {
   const order = await getOrderById(orderId);
   if (!order) return null;
@@ -187,6 +202,14 @@ export async function getOrderHistory(filters = {}) {
     if (dateFrom && new Date(order.createdAt) < new Date(dateFrom)) return false;
     if (dateTo && new Date(order.createdAt) > new Date(dateTo)) return false;
     return true;
+  });
+}
+
+export async function clearAllOrders() {
+  await withStore(ORDERS_STORE, 'readwrite', (store) => store.clear());
+  const tables = await getAllTables();
+  await withStore(TABLES_STORE, 'readwrite', (store) => {
+    tables.forEach((table) => store.put({ ...table, status: 'available', activeOrderIds: [] }));
   });
 }
 

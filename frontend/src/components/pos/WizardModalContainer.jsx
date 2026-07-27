@@ -626,7 +626,9 @@ export default function WizardModalContainer({ orderType, onClose }) {
         />
       )}
 
-      {completedOrder && <OrderSuccess order={completedOrder} onDone={handleDoneSuccess} />}
+      {completedOrder && (
+        <OrderSuccess order={completedOrder} orderType={orderType} onDone={handleDoneSuccess} />
+      )}
     </>
   );
 }

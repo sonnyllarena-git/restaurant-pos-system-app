@@ -4,19 +4,14 @@ import CashSessionManager from './CashSessionManager';
 import CashReconciliation from './CashReconciliation';
 import Button from '../common/Button';
 
-const MOCK_STAFF = [
-  { id: 's1', fullName: 'Maria Santos', role: 'admin', activeSession: true, shiftStart: '8:00 AM' },
-  { id: 's2', fullName: 'Jose Reyes', role: 'cashier', activeSession: true, shiftStart: '10:00 AM' },
-  { id: 's3', fullName: 'Ana Cruz', role: 'kitchen', activeSession: false, shiftStart: null },
-  { id: 's4', fullName: 'Pedro Ramos', role: 'viewer', activeSession: false, shiftStart: null },
-];
+const MOCK_STAFF = [];
 
 export default function StaffDashboard() {
   const [session, setSession] = useState({ open: false, openingBalance: 0, closingBalance: null, salesTotal: 0 });
   const [showSessionModal, setShowSessionModal] = useState(false);
 
   const handleOpenSession = (openingBalance) => {
-    setSession({ open: true, openingBalance, closingBalance: null, salesTotal: 4850 });
+    setSession({ open: true, openingBalance, closingBalance: null, salesTotal: 0 });
   };
 
   const handleCloseSession = (closingBalance) => {

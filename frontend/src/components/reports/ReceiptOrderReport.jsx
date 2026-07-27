@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Button from '../common/Button';
+import PrintPreviewModal from '../common/PrintPreviewModal';
 import { formatCurrency, formatTime } from '../../utils/formatters';
 import { getOrderDurationMinutes } from '../../services/reportService';
 
 export default function ReceiptOrderReport({ order }) {
   const duration = getOrderDurationMinutes(order);
+  const [showPreview, setShowPreview] = useState(false);
 
   return (
     <div className="bg-white border border-slate-300 rounded p-4">
@@ -40,11 +43,16 @@ export default function ReceiptOrderReport({ order }) {
         ))}
       </ul>
 
-      <div className="flex flex-wrap justify-end gap-6 text-sm border-t border-slate-100 pt-3">
+      <div className="flex flex-wrap items-center justify-end gap-6 text-sm border-t border-slate-100 pt-3">
         <span className="text-slate-600">
           Total <span className="text-slate-900 font-bold">{formatCurrency(order.total)}</span>
         </span>
+        <Button variant="secondary" size="sm" onClick={() => setShowPreview(true)}>
+          PRINT RECEIPT
+        </Button>
       </div>
+
+      {showPreview && <PrintPreviewModal order={order} onClose={() => setShowPreview(false)} />}
     </div>
   );
 }
