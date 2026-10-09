@@ -16,7 +16,7 @@ export default function OrderSuccess({ order, orderType, onDone }) {
   const [printing, setPrinting] = useState(false);
 
   const isRegular = orderType !== ORDER_TYPES.ADVANCE;
-  const canViewKitchen = canAccess(['admin', 'kitchen']);
+  const canViewKitchen = canAccess(['admin', 'cashier', 'kitchen']);
 
   const handlePrint = async () => {
     setPrinting(true);

@@ -6,7 +6,7 @@ import Header from '../components/layout/Header';
 
 const HOME_TILES = [
   { path: '/pos', label: 'POS', icon: '🛒', color: '#BFDBFE', roles: ['admin', 'cashier'] },
-  { path: '/kitchen', label: 'Kitchen', icon: '🍳', color: '#BBFBDC', roles: ['admin', 'kitchen'] },
+  { path: '/kitchen', label: 'Kitchen', icon: '🍳', color: '#BBFBDC', roles: ['admin', 'cashier', 'kitchen'] },
   { path: '/inventory', label: 'Inventory', icon: '📦', color: '#FEF08A', roles: ['admin', 'cashier'] },
   { path: '/reports', label: 'Reports', icon: '📊', color: '#E9D5FF', roles: ['admin', 'cashier', 'viewer'] },
   { path: '/staff', label: 'Staff', icon: '👥', color: '#FBCFE8', roles: ['admin'] },

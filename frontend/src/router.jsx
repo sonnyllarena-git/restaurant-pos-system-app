@@ -49,7 +49,7 @@ export default function AppRouter() {
         <Route
           path="/kitchen"
           element={
-            <ProtectedRoute requiredRoles={['admin', 'kitchen']}>
+            <ProtectedRoute requiredRoles={['admin', 'cashier', 'kitchen']}>
               <KitchenPage />
             </ProtectedRoute>
           }
