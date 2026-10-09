@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HCI Presentation Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: single centered column of sections; screens shown as framed mockups. */
+:root {
+  --bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --ink: #0F172A;
+  --ink-2: #334155;
+  --muted: #64748B;
+  --line: #E2E8F0;
+  --accent: #FF8C3C;
+  --accent-ink: #7C2D12;
+  --accent-soft: #FFEDD5;
+  --ok: #15803D;
+  --ok-soft: #DCFCE7;
+  --info: #1D4ED8;
+  --info-soft: #DBEAFE;
+  --warn: #A16207;
+  --warn-soft: #FEF9C3;
+  --wire: #F1F1F1;
+  --wire-line: #9CA3AF;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.6 Inter, "Segoe UI", system-ui, sans-serif;
+  padding-block: 32px;
+  padding-inline: 16px;
+}
+.wrap { max-width: 980px; margin-inline: auto; display: grid; gap: 28px; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.25; margin: 0; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: 0; max-width: 65ch; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-ink); }
+.lede { color: var(--ink-2); font-size: 1.05rem; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.section-head { display: grid; gap: 6px; }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.hero-meta { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip {
+  font-size: 13px; font-weight: 600; color: var(--ink-2);
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 999px; padding: 6px 12px;
+}
+.chip b { color: var(--ink); }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.table-wrap { overflow-x: auto; min-width: 0; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; }
+td.time { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
+.step-no {
+  display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--ink); color: #fff; font-size: 12px; font-weight: 700; flex: none;
+}
+.step { display: flex; gap: 12px; align-items: flex-start; }
+.note {
+  background: var(--accent-soft); color: var(--accent-ink);
+  border-radius: 8px; padding: 12px 14px; font-size: 14px;
+}
+.note.info { background: var(--info-soft); color: #1E3A8A; }
+.note.warn { background: var(--warn-soft); color: #713F12; }
+.tag {
+  font-size: 12px; font-weight: 700; border-radius: 6px; padding: 2px 8px; display: inline-block;
+}
+code { font-family: ui-monospace, Consolas, monospace; font-size: 13px; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
+.check { display: flex; gap: 10px; align-items: flex-start; }
+.check span.box { width: 16px; height: 16px; border: 1.5px solid var(--ink-2); border-radius: 3px; flex: none; margin-top: 4px; }
+
+/* Wireframe (low-fidelity) */
+.lofi {
+  background: var(--wire);
+  border: 1.5px dashed var(--wire-line);
+  border-radius: 6px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+  font: 12px/1.3 "Segoe UI", system-ui, sans-serif;
+  color: #4B5563;
+  min-width: 0;
+}
+.lofi .bar { border: 1.5px solid var(--wire-line); border-radius: 4px; padding: 6px 8px; background: #fff; }
+.lofi .box { border: 1.5px solid var(--wire-line); border-radius: 4px; background: #fff; display: grid; place-items: center; padding: 8px; min-height: 36px; text-align: center; }
+.lofi .row { display: grid; gap: 8px; }
+.lofi .cols { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+.lofi .grid6 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.lofi .label { font-weight: 700; text-align: center; color: #374151; }
+
+/* Mockup (high-fidelity) matching the app's look */
+.mock {
+  background: #F1F5F9;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 0;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  color: var(--ink);
+}
+.mock-top {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 14px;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: 13px; font-weight: 700;
+}
+.mock-top .sub { font-weight: 500; color: var(--muted); font-size: 12px; }
+.mock-body { padding: 14px; display: grid; gap: 12px; }
+.btn {
+  border: 0; border-radius: 8px; padding: 9px 14px; font: 600 13px Inter, "Segoe UI", sans-serif;
+  background: var(--accent); color: #111827; cursor: default;
+}
+.btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid #CBD5E1; }
+.btn.dark { background: var(--ink); color: #fff; }
+.pill { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 3px 9px; display: inline-block; }
+.p-pending { background: var(--warn-soft); color: #713F12; }
+.p-preparing { background: var(--info-soft); color: #1E3A8A; }
+.p-done { background: var(--ok-soft); color: #14532D; }
+.field { display: grid; gap: 4px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.field .input { background: var(--surface); border: 1px solid #CBD5E1; border-radius: 8px; padding: 9px 10px; font-weight: 400; color: var(--muted); }
+.mock-login { place-items: center; padding: 28px 16px; background: #F8FAFC; }
+.login-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px; width: min(100%, 320px); display: grid; gap: 14px; }
+.menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: grid; gap: 6px; font-size: 12px; }
+.item .thumb { height: 52px; border-radius: 6px; background: linear-gradient(135deg, #FED7AA, #FDBA74); }
+.item .price { font-weight: 700; font-variant-numeric: tabular-nums; }
+.item.sel { border: 2px solid var(--accent); }
+.mock-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 260px); gap: 12px; }
+.cart { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; align-content: start; font-size: 13px; }
+.cart .line { display: flex; justify-content: space-between; gap: 8px; }
+.cart .total { border-top: 1px solid var(--line); padding-top: 8px; font-weight: 800; display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+.kanban { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.col { background: #E2E8F0; border-radius: 10px; padding: 8px; display: grid; gap: 8px; align-content: start; }
+.col h4 { margin: 2px 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }
+.ticket { background: var(--surface); border-radius: 8px; padding: 10px; font-size: 12px; display: grid; gap: 6px; border-left: 4px solid var(--accent); }
+.ticket .meta { color: var(--muted); }
+.mock-caption { font-size: 12px; color: var(--muted); }
+
+@media (max-width: 560px) {
+  .mock-split { grid-template-columns: minmax(0, 1fr); }
+  .card { padding: 18px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 0. Cover -->
+  <header class="card">
+    <span class="eyebrow">HCI Final Project · Presentation Guide</span>
+    <h1>Jayden's Grill POS: how to present it</h1>
+    <p class="lede">A step-by-step guide for presenting the restaurant point-of-sale app to your professor over Zoom with screen sharing. It covers the timing, the talking points, the user research (persona and scenario), the wireframes and mockups you need, and a demo script.</p>
+    <div class="hero-meta">
+      <span class="chip"><b>Length:</b> 45 to 55 min (30-min version below)</span>
+      <span class="chip"><b>Format:</b> Zoom, screen share</span>
+      <span class="chip"><b>Demo:</b> Vercel link</span>
+      <span class="chip"><b>Accounts:</b> admin and cashier</span>
+    </div>
+  </header>
+
+  <!-- 1. Checklist -->
+  <section class="card" id="before">
+    <div class="section-head">
+      <span class="eyebrow">Before the day</span>
+      <h2>Setup checklist</h2>
+    </div>
+    <div class="grid-2">
+      <div class="check"><span class="box"></span><span>Open the Vercel link in Chrome or Edge on the laptop you will share.</span></div>
+      <div class="check"><span class="box"></span><span>Test both logins: admin (<code>sonny</code>) and cashier (<code>cashier</code>).</span></div>
+      <div class="check"><span class="box"></span><span>Clear old orders in Settings, then Database, then Clear Transactions. This removes earlier test data.</span></div>
+      <div class="check"><span class="box"></span><span>Place 3 or 4 sample orders beforehand so the Reports screen has numbers.</span></div>
+      <div class="check"><span class="box"></span><span>Do the whole demo once from start to finish, with a timer.</span></div>
+      <div class="check"><span class="box"></span><span>Close other tabs and apps. Turn off notifications. Set Zoom to share one window or the browser only.</span></div>
+      <div class="check"><span class="box"></span><span>Have this guide and the screenshots open on a second screen or phone.</span></div>
+      <div class="check"><span class="box"></span><span>Keep the Vercel link and both passwords ready in case Zoom or the Wi-Fi drops.</span></div>
+    </div>
+    <div class="note warn">Data is stored in each browser (IndexedDB), so use the same browser you tested in. Orders made on your phone will not show on the laptop.</div>
+  </section>
+
+  <!-- 2. Flow -->
+  <section class="card" id="flow">
+    <div class="section-head">
+      <span class="eyebrow">Structure</span>
+      <h2>Presentation flow (45 to 55 minutes)</h2>
+      <p>Your professor is grading the HCI process, not only the code. Spend the most time on users, design decisions, and evaluation. Use the live demo to prove the design works.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Segment</th><th>Min</th><th>What to cover</th></tr></thead>
+        <tbody>
+          <tr><td class="time">1</td><td>Opening and problem</td><td class="time">4</td><td>Who the restaurant is, what goes wrong with manual or paper orders, and why a POS is needed.</td></tr>
+          <tr><td class="time">2</td><td>Target users (persona)</td><td class="time">5</td><td>Ramon (owner) and Liza (cashier). Show the persona card and what each one needs.</td></tr>
+          <tr><td class="time">3</td><td>Scenario / use case</td><td class="time">3</td><td>A busy Friday dinner rush, told as a short story from start to finish.</td></tr>
+          <tr><td class="time">4</td><td>Design process</td><td class="time">6</td><td>Low-fidelity wireframes, then high-fidelity mockups, then what changed in the build and why.</td></tr>
+          <tr><td class="time">5</td><td>Live demo: cashier</td><td class="time">8</td><td>Login, take a dine-in order, confirm, print receipt. Follow the demo script below.</td></tr>
+          <tr><td class="time">6</td><td>Live demo: kitchen and tables</td><td class="time">5</td><td>Admin account. Kitchen queue, status flow, table management.</td></tr>
+          <tr><td class="time">7</td><td>Live demo: owner</td><td class="time">5</td><td>Inventory pricing with price history, then Reports (Dashboard and Summary).</td></tr>
+          <tr><td class="time">8</td><td>HCI principles and evaluation</td><td class="time">5</td><td>Consistency, simplicity, visibility, feedback, readable contrast. Show each one in the app.</td></tr>
+          <tr><td class="time">9</td><td>Development and testing</td><td class="time">3</td><td>Tech stack, the 3+ core features, and how you tested them (see the test notes below).</td></tr>
+          <tr><td class="time">10</td><td>Limitations and next steps</td><td class="time">2</td><td>No backend yet, data stays on one device, and planned work from the roadmap.</td></tr>
+          <tr><td class="time">11</td><td>Q&amp;A</td><td class="time">9</td><td>Use the Q&amp;A prep section at the end of this guide.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note info"><b>30-minute version:</b> keep segments 1, 2, 4, 5, 8, and 11. Cut segment 3 to one sentence, shorten the demo to one flow (cashier only), and skip segment 6 and 7 or show them quickly.</div>
+  </section>
+
+  <!-- 3. Opening talking points -->
+  <section class="card" id="talk">
+    <div class="section-head">
+      <span class="eyebrow">Slides and talking points</span>
+      <h2>What to say on each slide</h2>
+    </div>
+    <div class="grid-2">
+      <div class="card" style="box-shadow:none">
+        <h3>1. Title</h3>
+        <p>"I built a point-of-sale system for a restaurant called Jayden's Grill in Tanauan City. It handles dine-in, takeout, delivery, and advance orders, and it is a web app that runs on any device."</p>
+      </div>
+      <div class="card" style="box-shadow:none">
+        <h3>2. The problem</h3>
+        <p>"Orders are often taken on paper or in the kitchen's head. That causes wrong orders, slow service, and no clear sales numbers at the end of the day. My goal was to make the common tasks fast and clear for busy staff."</p>
+      </div>
+      <div class="card" style="box-shadow:none">
+        <h3>3. Users</h3>
+        <p>"I designed for two main users: the owner who checks sales and prices, and the cashier who takes orders during a rush. Here is the persona for each."</p>
+      </div>
+      <div class="card" style="box-shadow:none">
+        <h3>4. Approach</h3>
+        <p>"I started with paper sketches, moved to wireframes, then made high-fidelity mockups. Then I built the app and tested it against the usability principles. Some screens changed during the build, and I will show you where."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Personas -->
+  <section class="card" id="persona">
+    <div class="section-head">
+      <span class="eyebrow">User-centered design</span>
+      <h2>User personas</h2>
+      <p>These personas are fictional, built from the restaurant context. Replace the details with what you actually learned if you interviewed anyone.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card" style="box-shadow:none">
+        <h3>Ramon Santos, 48, Owner</h3>
+        <p class="mock-caption">Runs Jayden's Grill with two cashiers and a kitchen crew.</p>
+        <ul>
+          <li><b>Goal:</b> know daily sales and which items sell best, without staying late to count.</li>
+          <li><b>Frustration:</b> prices change, and old prices are still on the receipts.</li>
+          <li><b>Tech comfort:</b> uses a smartphone and a laptop, not a computer expert.</li>
+          <li><b>Needs:</b> large, readable numbers; a clear price history; one place for reports.</li>
+        </ul>
+      </div>
+      <div class="card" style="box-shadow:none">
+        <h3>Liza Bautista, 24, Cashier</h3>
+        <p class="mock-caption">Works evening shifts and takes orders during rush hour.</p>
+        <ul>
+          <li><b>Goal:</b> take orders fast and correctly, and reprint a receipt when asked.</li>
+          <li><b>Frustration:</b> mis-taps change quantities, and it is hard to tell which table is free.</li>
+          <li><b>Tech comfort:</b> quick with a touchscreen, but has no time to read long instructions.</li>
+          <li><b>Needs:</b> big buttons, a confirmation before a risky step, clear table status.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Scenario -->
+  <section class="card" id="scenario">
+    <div class="section-head">
+      <span class="eyebrow">User-centered design</span>
+      <h2>Scenario (use case)</h2>
+      <p>Tell this as a short story. The professor should be able to picture the moment the software helps.</p>
+    </div>
+    <div class="grid-2">
+      <div class="step"><span class="step-no">1</span><p>It is 7:40 PM on a Friday. Liza logs in as cashier. The price-check reminder pops up, and she checks the menu prices with a click.</p></div>
+      <div class="step"><span class="step-no">2</span><p>A family of four sits at Table 4. Liza taps <b>POS</b>, chooses <b>Regular Order</b>, selects <b>Dine In</b>, and picks Table 4.</p></div>
+      <div class="step"><span class="step-no">3</span><p>She searches for "sisig", sets the quantity to 3 by typing it, and adds drinks. The total updates right away.</p></div>
+      <div class="step"><span class="step-no">4</span><p>She confirms the order and reads the "Please read to customer" banner aloud. The order is submitted, and the kitchen gets it on screen.</p></div>
+      <div class="step"><span class="step-no">5</span><p>Later, Ramon reviews the day in Reports: total orders, revenue, top items, and a full order list he can reprint or export.</p></div>
+      <div class="step"><span class="step-no">6</span><p>After the family leaves, Liza taps <b>Done Eating</b> so Table 4 becomes available again for the next guests.</p></div>
+    </div>
+  </section>
+
+  <!-- 6. Low-fidelity wireframes -->
+  <section class="card" id="lofi">
+    <div class="section-head">
+      <span class="eyebrow">Prototyping</span>
+      <h2>Low-fidelity prototypes (wireframes)</h2>
+      <p>Plain grey boxes that show layout and flow only. Draw these by hand on paper or in a tool, then photograph them for your submission. The three below match the mockups in the next section.</p>
+    </div>
+
+    <div class="grid-3">
+      <div class="lofi">
+        <div class="label">A. Login</div>
+        <div class="box">Logo</div>
+        <div class="box" style="min-height:28px">Username</div>
+        <div class="box" style="min-height:28px">Password</div>
+        <div class="box" style="min-height:28px">[ LOGIN ]</div>
+      </div>
+      <div class="lofi">
+        <div class="label">B. POS: menu and cart</div>
+        <div class="bar">Header: name, user, logout</div>
+        <div class="cols">
+          <div class="row"><div class="bar">Search</div><div class="grid6"><div class="box">item</div><div class="box">item</div><div class="box">item</div><div class="box">item</div><div class="box">item</div><div class="box">item</div></div></div>
+          <div class="box" style="align-items:start">Cart<br>Total<br>[Confirm]</div>
+        </div>
+      </div>
+      <div class="lofi">
+        <div class="label">C. Kitchen board</div>
+        <div class="bar">Orders | Table management</div>
+        <div class="grid6" style="grid-template-columns:1fr 1fr 1fr">
+          <div class="box">Pending</div>
+          <div class="box">Preparing</div>
+          <div class="box">Completed</div>
+        </div>
+        <div class="box">Ticket cards with items and timers</div>
+      </div>
+    </div>
+    <div class="note">Your sketches should also show the flow between screens with arrows: Home, then POS, then Confirm, then Order Submitted, then Kitchen.</div>
+  </section>
+
+  <!-- 7. High-fidelity mockups -->
+  <section class="card" id="hifi">
+    <div class="section-head">
+      <span class="eyebrow">Prototyping</span>
+      <h2>High-fidelity prototypes (mockups)</h2>
+      <p>These show the visual design used in the app: Inter font, slate text on light backgrounds, and an orange accent for the main action. Each one matches the real screen, so you can show a mockup and then switch to the live app.</p>
+    </div>
+
+    <div class="card" style="box-shadow:none">
+      <h3>A. Staff login</h3>
+      <div class="mock mock-login">
+        <div class="login-card">
+          <div style="font-weight:700;letter-spacing:.02em">STAFF LOGIN</div>
+          <div class="field">Username<span class="input">Enter your username</span></div>
+          <div class="field">Password<span class="input">Enter your password</span></div>
+          <label style="font-size:13px;color:var(--ink-2)"><input type="checkbox" disabled> Remember me</label>
+          <span class="btn" style="text-align:center">LOGIN</span>
+        </div>
+      </div>
+      <p class="mock-caption">Clear labels above each field, one primary button, and a field-level error message if the input is missing.</p>
+    </div>
+
+    <div class="card" style="box-shadow:none">
+      <h3>B. POS: menu and cart</h3>
+      <div class="mock">
+        <div class="mock-top">
+          <span>Jayden's Grill</span>
+          <span class="sub">Dine In · Table 4 · Cashier</span>
+        </div>
+        <div class="mock-body">
+          <div class="mock-split">
+            <div style="display:grid;gap:10px;min-width:0">
+              <div class="field"><span class="input" style="background:#fff">Search items in all categories</span></div>
+              <div class="menu-grid">
+                <div class="item sel"><div class="thumb"></div><b>Sisig</b><span class="price">₱180</span></div>
+                <div class="item"><div class="thumb"></div><b>Inihaw na Liempo</b><span class="price">₱220</span></div>
+                <div class="item"><div class="thumb"></div><b>Halo-halo</b><span class="price">₱95</span></div>
+                <div class="item"><div class="thumb"></div><b>Iced Tea</b><span class="price">₱60</span></div>
+                <div class="item"><div class="thumb"></div><b>Kare-kare</b><span class="price">₱250</span></div>
+                <div class="item"><div class="thumb"></div><b>Leche Flan</b><span class="price">₱85</span></div>
+              </div>
+            </div>
+            <div class="cart">
+              <b>Current order</b>
+              <div class="line"><span>Sisig × 3</span><span>₱540</span></div>
+              <div class="line"><span>Iced Tea × 2</span><span>₱120</span></div>
+              <div class="total"><span>Total</span><span>₱660</span></div>
+              <span class="btn" style="text-align:center">Review order</span>
+              <span class="btn ghost" style="text-align:center">Clear</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="mock-caption">The selected item has a strong orange border. The total updates as items change. Quantity can be typed or set with plus and minus buttons.</p>
+    </div>
+
+    <div class="card" style="box-shadow:none">
+      <h3>C. Kitchen display</h3>
+      <div class="mock">
+        <div class="mock-top">
+          <span>Kitchen Display</span>
+          <span class="sub">Orders · Table Management</span>
+        </div>
+        <div class="mock-body">
+          <div class="kanban">
+            <div class="col">
+              <h4>Pending</h4>
+              <div class="ticket"><b>Table 4 · #1042</b><span class="meta">Dine In · 3 items</span><span class="pill p-pending">Pending</span></div>
+            </div>
+            <div class="col">
+              <h4>Preparing</h4>
+              <div class="ticket" style="border-left-color:#3B82F6"><b>Takeout · #1041</b><span class="meta">2 items · 6 min</span><span class="pill p-preparing">Preparing</span></div>
+            </div>
+            <div class="col">
+              <h4>Completed</h4>
+              <div class="ticket" style="border-left-color:#22C55E"><b>Table 2 · #1039</b><span class="meta">Served</span><span class="pill p-done">Completed</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="mock-caption">Each status has a text label and a color, so the state is clear even without color.</p>
+    </div>
+  </section>
+
+  <!-- 8. Principles mapping -->
+  <section class="card" id="principles">
+    <div class="section-head">
+      <span class="eyebrow">Interface design</span>
+      <h2>Mapping the design principles to the app</h2>
+      <p>Your professor asked for these principles. For each one, name a screen and show it in the live app.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Principle</th><th>What it means here</th><th>Where to show it</th></tr></thead>
+        <tbody>
+          <tr><td><b>Consistency</b></td><td>The same button style, modal layout, and colors are used on every screen.</td><td>Compare Inventory and Reports tabs; the same search and filter layout is used on both.</td></tr>
+          <tr><td><b>Simplicity</b></td><td>Orders are built one step at a time with a wizard, not on one crowded form.</td><td>POS: Service Type, then Table, then Menu, then Payment, then Confirm.</td></tr>
+          <tr><td><b>Visibility</b></td><td>Only the tiles a user can use are shown. Table status is visible at a glance.</td><td>Log in as cashier, then admin, and compare the home screen. Table map in Kitchen.</td></tr>
+          <tr><td><b>Feedback</b></td><td>Every action is confirmed: toasts, the Order Submitted screen, a warning above 100 units, and a price history popup.</td><td>Submit an order. Change a price and open History.</td></tr>
+          <tr><td><b>Readable fonts and contrast</b></td><td>Dark slate text on white or light backgrounds, with clear sizes for prices and totals.</td><td>Point to the receipt, the totals, and the Reports cards.</td></tr>
+          <tr><td><b>Clear navigation</b></td><td>A header on each page and a Home button to get back.</td><td>Click through Home, POS, and Reports.</td></tr>
+          <tr><td><b>Error prevention</b></td><td>Confirmation before a large quantity, a banner to read to the customer, and blocked deletes for items already used in orders.</td><td>Type a quantity over 100. Try to delete a used item.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note info">Be honest about the gaps. If a principle is only partly met, say so and name the next fix. Professors respond well to self-critique.</div>
+  </section>
+
+  <!-- 9. Demo script -->
+  <section class="card" id="demo">
+    <div class="section-head">
+      <span class="eyebrow">Live demo</span>
+      <h2>Demo script</h2>
+      <p>Follow these steps in order. Practice them until you can do them without reading.</p>
+    </div>
+
+    <h3>Part 1: Cashier (about 8 minutes)</h3>
+    <ol>
+      <li>Log in with <code>cashier</code> / <code>cashier</code>. Point out the price-check reminder as a visibility feature, then continue.</li>
+      <li>Tap <b>POS</b>, then <b>Regular Order</b>. Choose <b>Dine In</b> and <b>Table 4</b>.</li>
+      <li>Search for "sisig". Show that search covers every category. Type the quantity directly.</li>
+      <li>Add a drink. Show that the total updates as you go.</li>
+      <li>Confirm the order and read the banner aloud, as a cashier would.</li>
+      <li>On the Order Submitted screen, tap <b>Print Receipt</b> and show the preview.</li>
+    </ol>
+
+    <h3>Part 2: Admin, kitchen and tables (about 5 minutes)</h3>
+    <ol start="7">
+      <li>Log out, then log in with <code>sonny</code> / <code>llarena</code>. Show that the home screen now has more tiles.</li>
+      <li>Open <b>Kitchen</b>. Move the new order from Pending to Preparing to Completed.</li>
+      <li>Open the <b>Table Management</b> tab. Show the occupied table, then tap <b>Done Eating</b> to free it. Explain that cashiers control this.</li>
+    </ol>
+
+    <h3>Part 3: Owner, inventory and reports (about 5 minutes)</h3>
+    <ol start="10">
+      <li>Open <b>Inventory</b>, then the <b>Pricing</b> tab. Edit one item's price and save it.</li>
+      <li>Hover over <b>History</b> to show the price log with timestamps.</li>
+      <li>Open <b>Reports</b>. Show the Dashboard KPI cards and Top 5 Items.</li>
+      <li>Switch to <b>Summary</b>. Open one order with <b>View details</b>, then show the <b>Print</b> button.</li>
+    </ol>
+
+    <div class="note warn"><b>If something breaks:</b> stay calm and say, "I'll show you the screenshot from my testing." Have screenshots of each step ready. Do not spend more than 30 seconds trying to fix it live.</div>
+  </section>
+
+  <!-- 10. Testing -->
+  <section class="card" id="testing">
+    <div class="section-head">
+      <span class="eyebrow">Development requirements</span>
+      <h2>Stability and testing</h2>
+      <p>The brief asks for a system that is functional, stable, and testable. Show evidence for each.</p>
+    </div>
+    <div class="grid-2">
+      <div class="card" style="box-shadow:none">
+        <h3>Core features (need 3 or more)</h3>
+        <ul>
+          <li>Login with role-based access (admin and cashier)</li>
+          <li>Order entry with menu search, quantities, and receipt</li>
+          <li>Kitchen display with status flow and table management</li>
+          <li>Inventory pricing with price history</li>
+          <li>Reports with filters, search, and CSV export</li>
+        </ul>
+      </div>
+      <div class="card" style="box-shadow:none">
+        <h3>How you tested (fill in what you did)</h3>
+        <ul>
+          <li>Manual test cases for each flow, with expected and actual results</li>
+          <li>Tested on desktop Chrome and on a phone</li>
+          <li>Tested offline after the first load (PWA)</li>
+          <li>Form validation: empty username or password shows an error</li>
+          <li>Known issues listed in the README</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note info">Add a short test table to your slides (test case, steps, expected result, pass or fail). It is the strongest proof of "testable" and takes little time to make.</div>
+  </section>
+
+  <!-- 11. Q&A -->
+  <section class="card" id="qa">
+    <div class="section-head">
+      <span class="eyebrow">Be ready</span>
+      <h2>Likely questions and answers</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Question</th><th>Suggested answer</th></tr></thead>
+        <tbody>
+          <tr><td>Is the login secure?</td><td>"No. It is a demo login checked in the browser, so the passwords can be seen in the code. A real version would need a backend with hashed passwords."</td></tr>
+          <tr><td>Why is there no database server?</td><td>"The app runs in the browser with IndexedDB, so it can be demoed with just a link and works offline. A multi-device version would need a cloud backend, which is on the roadmap."</td></tr>
+          <tr><td>Why not a desktop app?</td><td>"I first planned Electron with SQLite. I changed to a PWA so it could be shown on any device without an installer. Electron is still an option for an offline restaurant install."</td></tr>
+          <tr><td>How did you decide the layout?</td><td>"From the personas and scenario. The cashier needs speed, so the POS uses a step-by-step wizard with big buttons. The owner needs reports, so Reports is one tab away from Home."</td></tr>
+          <tr><td>What did you change after the prototype?</td><td>"Name the real change, for example the order wizard or the Order Submitted screen. Show the wireframe and the app side by side."</td></tr>
+          <tr><td>What would you improve next?</td><td>"Add tax and subtotal on receipts, a real login backend, multi-device sync, and a usability test with real cashiers."</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 12. Submission checklist -->
+  <section class="card" id="submit">
+    <div class="section-head">
+      <span class="eyebrow">Submission</span>
+      <h2>Deliverables checklist</h2>
+    </div>
+    <div class="grid-2">
+      <div class="check"><span class="box"></span><span>Working app (Vercel link) with at least 3 core features</span></div>
+      <div class="check"><span class="box"></span><span>1 user persona (Ramon and Liza above, or your own)</span></div>
+      <div class="check"><span class="box"></span><span>1 scenario or use case (the Friday rush story)</span></div>
+      <div class="check"><span class="box"></span><span>Low-fidelity prototype: photos of paper sketches or wireframes</span></div>
+      <div class="check"><span class="box"></span><span>High-fidelity prototype: mockups (screens A, B, C above)</span></div>
+      <div class="check"><span class="box"></span><span>Evidence of the UI principles: consistency, simplicity, visibility, feedback</span></div>
+      <div class="check"><span class="box"></span><span>Clear navigation and readable fonts and contrast</span></div>
+      <div class="check"><span class="box"></span><span>Test results table</span></div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

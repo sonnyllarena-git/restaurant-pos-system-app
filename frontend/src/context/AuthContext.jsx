@@ -2,6 +2,12 @@ import React, { createContext, useState, useEffect } from 'react';
 
 export const AuthContext = createContext();
 
+// Demo accounts. There is no backend, so credentials are checked against this list.
+const ACCOUNTS = [
+  { id: '1', username: 'sonny', password: 'llarena', fullName: 'Sonny Llarena', role: 'admin' },
+  { id: '2', username: 'cashier', password: 'cashier', fullName: 'Cashier', role: 'cashier' },
+];
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -27,25 +33,20 @@ export function AuthProvider({ children }) {
         return;
       }
       setTimeout(() => {
-        // No real auth backend here, so role is inferred from the mock username so
-        // QA can exercise role-gated UI without a schema/backend change.
-        const lowerUsername = username.toLowerCase();
-        let role = 'admin';
-        if (lowerUsername.includes('cashier')) role = 'cashier';
-        else if (lowerUsername.includes('kitchen')) role = 'kitchen';
-        else if (lowerUsername.includes('viewer')) role = 'viewer';
+        const account = ACCOUNTS.find(
+          (a) => a.username === username.trim().toLowerCase() && a.password === password
+        );
+        if (!account) {
+          reject(new Error('Invalid username or password'));
+          return;
+        }
 
-        const mockUser = {
-          id: '1',
-          username,
-          fullName: 'John Doe',
-          role,
-          loginTime: new Date().toISOString(),
-        };
-        setUser(mockUser);
+        const { password: _omit, ...safeAccount } = account;
+        const loggedInUser = { ...safeAccount, loginTime: new Date().toISOString() };
+        setUser(loggedInUser);
         setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        resolve(mockUser);
+        localStorage.setItem('user', JSON.stringify(loggedInUser));
+        resolve(loggedInUser);
       }, 600);
     });
   };
